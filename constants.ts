@@ -40,7 +40,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sort_oldest: 'OLDEST FIRST',
   },
   ru: {
-    system_name: 'ANONLOG.RU // ВАЙБ ОБЩЕНИЯ НУЛЕВЫХ',
+    system_name: 'ANONLOG.RU // ВАЙБ НУЛЕВЫХ',
     footer: 'Безопасно // Анонимно // Надежно',
     search_label: 'ПОИСК //',
     search_placeholder: 'ID ИЛИ ТЕКСТ...',
