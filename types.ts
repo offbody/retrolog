@@ -5,7 +5,7 @@ export interface Message {
   timestamp: number;
   sequenceNumber: number;
   senderId: string;
-  parentId?: string;
+  parentId?: string | null; // Allow null for Firestore compatibility
   tags: string[];
 }
 

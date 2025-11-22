@@ -1,16 +1,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Message } from '../types';
-import { STORAGE_KEY } from '../constants';
+import { db } from '../firebaseConfig';
+import { 
+  collection, 
+  addDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  limit, 
+  getDocs 
+} from 'firebase/firestore';
 
 const USER_ID_KEY = 'anon_log_user_id';
 
 export const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoaded, setIsLoaded] = useState(false);
   const [userId, setUserId] = useState<string>('');
 
-  // Initialize User ID
+  // 1. Initialize User ID (Client Side Identity)
   useEffect(() => {
     let storedUserId = localStorage.getItem(USER_ID_KEY);
     if (!storedUserId) {
@@ -20,63 +30,79 @@ export const useMessages = () => {
     setUserId(storedUserId);
   }, []);
 
-  // Load messages from local storage on mount
+  // 2. Subscribe to Firestore Messages (Real-time)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setMessages(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error("Failed to load messages", error);
-    } finally {
+    // Query messages sorted by timestamp descending (newest first)
+    const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const msgs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Message[];
+      
+      setMessages(msgs);
       setIsLoaded(true);
-    }
+    }, (error) => {
+      console.error("Error fetching messages from Firebase:", error);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
-  // Save messages to local storage whenever they change
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    }
-  }, [messages, isLoaded]);
-
-  const addMessage = useCallback((content: string, parentId?: string, manualTags: string[] = []) => {
+  // 3. Add Message Function
+  const addMessage = useCallback(async (content: string, parentId?: string, manualTags: string[] = []) => {
     if (!userId) return;
 
-    // 1. Extract tags from content via Regex
+    // Process Tags
     const tagRegex = /#[a-zA-Z0-9_а-яА-ЯёЁ]+/g;
     const regexMatches = content.match(tagRegex) || [] as string[];
-    
-    // 2. Process manual tags
-    // Ensure they start with #, trim, and filter empty
     const processedManualTags = manualTags
       .map(t => t.trim())
       .filter(t => t.length > 0)
       .map(t => t.startsWith('#') ? t : `#${t}`);
 
-    // 3. Combine and Deduplicate
     const allTags = [...regexMatches, ...processedManualTags];
     const uniqueTags = Array.from(new Set(allTags))
-      .filter(tag => tag.length <= 32) // Max length check
-      .map(tag => tag.toLowerCase()); // Normalize
+      .filter(tag => tag.length <= 32)
+      .map(tag => tag.toLowerCase());
 
-    setMessages((prevMessages) => {
-      const nextSequence = prevMessages.length > 0 ? prevMessages[0].sequenceNumber + 1 : 1;
+    try {
+      // Determine Sequence Number
+      // We fetch the very latest message by sequenceNumber to increment it.
+      // Note: In high-traffic apps, this needs a cloud function or transaction.
+      // For this MVP, client-side fetching is acceptable.
+      const lastMsgQuery = query(
+          collection(db, 'messages'), 
+          orderBy('sequenceNumber', 'desc'), 
+          limit(1)
+      );
+      const lastMsgSnap = await getDocs(lastMsgQuery);
+      let nextSequence = 1;
       
-      const newMessage: Message = {
-        id: crypto.randomUUID(),
+      if (!lastMsgSnap.empty) {
+          const lastMsgData = lastMsgSnap.docs[0].data();
+          nextSequence = (lastMsgData.sequenceNumber || 0) + 1;
+      }
+
+      // Construct Message
+      const newMessage: Omit<Message, 'id'> = {
         content: content.trim(),
         timestamp: Date.now(),
         sequenceNumber: nextSequence,
         senderId: userId,
-        parentId: parentId,
+        parentId: parentId || null,
         tags: uniqueTags
       };
 
-      // Add new message to the beginning of the array
-      return [newMessage, ...prevMessages];
-    });
+      // Write to Firebase
+      await addDoc(collection(db, 'messages'), newMessage);
+
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+
   }, [userId]);
 
   return {
