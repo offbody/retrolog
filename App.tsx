@@ -137,7 +137,11 @@ const App: React.FC = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowStickyInput(!entry.isIntersecting);
+        // Only show sticky header if the element is NOT intersecting
+        // AND it is positioned ABOVE the viewport (top < 0).
+        // This prevents it from showing if the element is just weirdly positioned or loaded initially.
+        const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        setShowStickyInput(isScrolledPast);
       },
       {
         root: null,

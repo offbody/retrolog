@@ -54,9 +54,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
 
   const handleDeleteAction = (e: React.MouseEvent) => {
       e.stopPropagation();
-      if (window.confirm("ADMIN: Удалить это сообщение?")) {
-          onDeleteMessage(message.id);
-      }
+      // ONE-CLICK DELETE FOR ADMIN (NO CONFIRMATION)
+      onDeleteMessage(message.id);
   };
 
   const handleBlockAction = (e: React.MouseEvent) => {
