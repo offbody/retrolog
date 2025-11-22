@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Message } from '../types';
 import { db } from '../firebaseConfig';

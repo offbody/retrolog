@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { MessageItemProps } from '../types';
 import { IdentityWidget } from './IdentityWidget';

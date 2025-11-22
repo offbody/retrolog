@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { MessageListProps } from '../types';
 import { MessageItem } from './MessageItem';

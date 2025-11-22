@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 
 const RECEIVER_WORDS = [

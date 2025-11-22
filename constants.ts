@@ -1,4 +1,3 @@
-
 import { Translations, Language } from './types';
 
 export const STORAGE_KEY = 'anon_log_messages';
@@ -51,7 +50,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     input_placeholder: 'ВВЕДИТЕ СООБЩЕНИЕ...',
     chars_label: 'СИМВ',
     new_entry_label: 'НОВАЯ ЗАПИСЬ',
-    publish_btn: 'ПУБЛИКАЦИЯ',
+    publish_btn: 'ОПУБЛИКОВАТЬ',
     replying_to_prefix: 'Ответ на #',
     cancel_btn: 'ОТМЕНА',
     all_messages_tab: 'Все сообщения',
@@ -68,7 +67,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     theme_light: 'ДЕНЬ',
     theme_dark: 'НОЧЬ',
     session_key_label: 'КЛЮЧ СЕССИИ',
-    session_expl_text: 'Это криптографический слепок Вашей личности. При очистке журнала браузера слепок, и все сообщения этого слепка - удалятся.',
+    session_expl_text: 'Это криптографический слепок Вашей личности. При очистке кеша браузера этот слепок, и все сообщения вкладки "Мои диалоги" - удалятся.',
     add_tag_btn: 'ДОБАВИТЬ ТЕГ',
     tags_placeholder: 'Введите теги, разделяя их запятой',
     sort_newest: 'СНАЧАЛА НОВЫЕ',

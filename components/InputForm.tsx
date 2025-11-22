@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { MessageInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';

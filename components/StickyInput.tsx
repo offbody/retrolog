@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
@@ -70,107 +69,116 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 w-full z-50 transform transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 w-full z-50 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md pb-safe ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
        {/* Replying Banner for Sticky */}
        {replyingTo && (
-         <div className="bg-black dark:bg-white text-white dark:text-black py-1 px-4 flex justify-center items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
-            <span>{t.replying_to_prefix}{replyingTo.sequenceNumber.toString().padStart(3, '0')}</span>
-            <button onClick={onCancelReply} className="border-b border-white/50 dark:border-black/50">{t.cancel_btn}</button>
+         <div className="bg-black dark:bg-white text-white dark:text-black p-2 flex justify-between items-center border-t border-black/10 dark:border-white/10">
+             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                </svg>
+                {t.replying_to_prefix}{replyingTo.sequenceNumber.toString().padStart(3, '0')}
+             </div>
+             <button type="button" onClick={onCancelReply} className="hover:opacity-70">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+             </button>
          </div>
        )}
-      
-      <div className="bg-white dark:bg-[#0a0a0a] border-t border-black/10 dark:border-white/10 p-4 pb-6 sm:pb-4">
-        <div className="max-w-[1600px] mx-auto flex flex-col gap-2">
-          
-          {/* Sticky Tag Input (Collapsible) */}
-          {showTagInput && (
-              <div className="w-full animate-fade-in">
-                  <div className="relative">
+
+       {/* Tag Input Area (Collapsible) */}
+       {showTagInput && (
+          <div className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] border-t border-black/10 dark:border-white/10 px-4 py-2 relative">
+               <div className="relative">
                     <input 
                         ref={tagInputRef}
-                        type="text"
+                        type="text" 
                         value={tagInputText}
                         onChange={handleTagChange}
                         placeholder={t.tags_placeholder}
-                        className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] text-black dark:text-white text-xs font-mono p-2 pr-8 border-b border-black/10 dark:border-white/10 focus:outline-none border-t border-black/10 dark:border-white/10"
+                        className="w-full bg-transparent py-1 pr-6 text-sm font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
                     />
                     <button
                         type="button"
                         onClick={handleCloseTags}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
-                        title="Clear and Close"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                  </div>
-              </div>
+               </div>
+          </div>
+       )}
+
+       <form onSubmit={handleSubmit} className="w-full border-t border-black/10 dark:border-white/10 px-4 py-3 flex items-center gap-4">
+          
+          {/* Toggle Tags Button */}
+          {!showTagInput && (
+             <button
+                type="button"
+                onClick={() => setShowTagInput(!showTagInput)}
+                className="flex items-center justify-center w-8 h-8 border border-black/10 dark:border-white/10 text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                title={t.add_tag_btn}
+             >
+                <span className="text-sm font-bold">#</span>
+             </button>
           )}
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex flex-col shrink-0">
-                <span className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                {t.quick_entry_label}
-                </span>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex-grow flex flex-col gap-2">
-                <div className="flex gap-2 sm:gap-4 w-full">
-                    <div className="relative flex-grow group flex flex-col bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-transparent focus-within:border-black dark:focus-within:border-white transition-colors">
-                        
-                        <div className="relative">
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={text}
-                                onChange={handleTextChange}
-                                placeholder={replyingTo ? `${t.replying_to_prefix}${replyingTo.sequenceNumber}...` : t.input_placeholder}
-                                maxLength={MAX_MESSAGE_LENGTH}
-                                className="w-full bg-transparent text-black dark:text-white font-mono text-sm sm:text-base pl-3 sm:pl-4 py-3 sm:py-4 pr-12 focus:outline-none placeholder-gray-400 dark:placeholder-gray-600"
-                            />
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-600 font-bold pointer-events-none">
-                                {text.length}
-                            </div>
-                        </div>
-                    </div>
-
-                    {!showTagInput && (
-                        <button
-                            type="button"
-                            onClick={() => setShowTagInput(true)}
-                            className="shrink-0 border border-black dark:border-white text-black dark:text-white px-3 flex items-center justify-center font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                            title={t.add_tag_btn}
-                        >
-                            #
-                        </button>
-                    )}
-
-                    <button
-                    type="submit"
-                    disabled={text.trim().length === 0 || cooldownRemaining > 0}
-                    className="border border-black dark:border-white text-black dark:text-white px-4 sm:px-8 text-xs sm:text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                    {cooldownRemaining > 0 ? `${cooldownRemaining}s` : t.send_btn}
-                    </button>
-                </div>
-                
-                {detectedTags.length > 0 && (
-                    <div className="flex items-center gap-2 overflow-x-auto w-full no-scrollbar pl-1">
-                        {detectedTags.map((tag, idx) => (
-                            <span key={idx} className="text-[10px] bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 font-mono whitespace-nowrap">
-                                {tag}
-                            </span>
+          {/* Input Field */}
+          <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={text}
+                onChange={handleTextChange}
+                placeholder={t.input_placeholder}
+                className="w-full bg-transparent text-black dark:text-white text-base pr-14 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+              />
+              
+              {/* Character Counter / Tags */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#050505] to-transparent">
+                  {detectedTags.length > 0 ? (
+                     <div className="flex gap-1">
+                        {detectedTags.slice(0, 2).map((tag, i) => (
+                            <span key={i} className="text-[8px] bg-black dark:bg-white text-white dark:text-black px-1">{tag}</span>
                         ))}
-                    </div>
-                )}
-            </form>
+                        {detectedTags.length > 2 && <span className="text-[8px] text-gray-400">...</span>}
+                     </div>
+                  ) : (
+                     <span className="text-[10px] text-gray-400 dark:text-gray-600">
+                        {text.length}/{MAX_MESSAGE_LENGTH}
+                     </span>
+                  )}
+              </div>
           </div>
-        </div>
-      </div>
+
+          {/* Send Button */}
+          <button
+            type="submit"
+            disabled={text.trim().length === 0 || cooldownRemaining > 0}
+            className="shrink-0 h-10 px-4 sm:px-6 border border-black/10 dark:border-white/10 text-black dark:text-white text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            {cooldownRemaining > 0 ? (
+                <span>{cooldownRemaining}s</span>
+            ) : (
+                <>
+                    {/* Mobile Icon */}
+                    <span className="sm:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                    </span>
+                    {/* Desktop Text */}
+                    <span className="hidden sm:inline">{t.send_btn}</span>
+                </>
+            )}
+          </button>
+       </form>
     </div>
   );
 };

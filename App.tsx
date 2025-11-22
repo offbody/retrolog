@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { InputForm } from './components/InputForm';
 import { MessageList } from './components/MessageList';
@@ -11,6 +10,7 @@ import { Preloader } from './components/Preloader';
 import { IdentityWidget } from './components/IdentityWidget';
 import { IllustrationSender } from './components/IllustrationSender';
 import { IllustrationReceiver } from './components/IllustrationReceiver';
+import { ScrollToTop } from './components/ScrollToTop';
 import { useMessages } from './hooks/useMessages';
 import { Message, Language } from './types';
 import { TRANSLATIONS } from './constants';
@@ -42,7 +42,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 700);
+    }, 1700);
     return () => clearTimeout(timer);
   }, []);
 
@@ -164,7 +164,7 @@ const App: React.FC = () => {
           
           <header className="mb-12 w-full">
              {/* DESKTOP & TABLET LANDSCAPE */}
-            <div className="hidden lg:flex items-center justify-between h-10 gap-4">
+             <div className="hidden lg:flex items-center justify-between h-10 gap-4">
                 <div className="flex-1 flex justify-start">
                    <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
                 </div>
@@ -262,6 +262,8 @@ const App: React.FC = () => {
           </footer>
 
         </div>
+
+        <ScrollToTop />
 
         <StickyInput 
           onSendMessage={handleSendMessage} 
