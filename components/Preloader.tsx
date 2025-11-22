@@ -1,11 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
+import { Translations } from '../types';
 
 interface PreloaderProps {
   isVisible: boolean;
+  t: Translations;
 }
 
-export const Preloader: React.FC<PreloaderProps> = ({ isVisible }) => {
+export const Preloader: React.FC<PreloaderProps> = ({ isVisible, t }) => {
   const [shouldRender, setShouldRender] = useState(true);
 
   useEffect(() => {
@@ -28,11 +30,11 @@ export const Preloader: React.FC<PreloaderProps> = ({ isVisible }) => {
     >
       <div className="flex flex-col items-center gap-4">
         <div className="text-4xl font-bold font-mono tracking-widest text-black dark:text-white animate-pulse">
-          ANONLOG
+          {t.preloader_title}
         </div>
         
         <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-black/50 dark:text-white/50">
-          <span>LOAD MESSAGES</span>
+          <span>{t.preloader_subtitle}</span>
           <span className="w-2 h-4 bg-black dark:bg-white animate-pulse"></span>
         </div>
 

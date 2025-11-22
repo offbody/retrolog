@@ -14,7 +14,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, t }) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t.search_placeholder}
-        className="w-full bg-transparent font-mono text-lg uppercase placeholder-gray-400 dark:placeholder-gray-600 text-black dark:text-white focus:outline-none"
+        className="w-full bg-transparent font-mono text-sm uppercase tracking-widest placeholder-gray-400 dark:placeholder-gray-600 text-black dark:text-white focus:outline-none"
       />
       {value && (
         <button 

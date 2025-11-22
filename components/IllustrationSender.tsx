@@ -1,18 +1,26 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+
+const SENDER_WORDS = [
+  'НАДЕЖДА', 'ИСКРЕННОСТЬ', 'СТРАХ', 'ТРЕПЕТ', 'ШЕПОТ', 
+  'ПРИЗНАНИЕ', 'БОЛЬ', 'РАДОСТЬ', 'ГНЕВ', 'ЛЮБОВЬ',
+  'ТОСКА', 'НЕЖНОСТЬ', 'КРИК', 'МОЛЧАНИЕ', 'ВЕРА'
+];
 
 export const IllustrationSender: React.FC = () => {
+  const [isHovered, setIsHovered] = useState(false);
+
   const columns = useMemo(() => {
-    // Authentic Matrix code rain often uses half-width katakana
-    // Removed numbers as requested for a cleaner look
     const chars = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
     const colCount = 25;
     return Array.from({ length: colCount }).map((_, i) => ({
       id: i,
-      left: (i / colCount) * 100, // Position in percentage
+      left: (i / colCount) * 100,
       speed: Math.random() * 2 + 2, 
       startDelay: Math.random() * 5, 
-      chars: Array.from({ length: 22 }).map(() => chars[Math.floor(Math.random() * chars.length)])
+      chars: Array.from({ length: 22 }).map(() => chars[Math.floor(Math.random() * chars.length)]),
+      // Append '#' separator to the word
+      word: SENDER_WORDS[Math.floor(Math.random() * SENDER_WORDS.length)] + '#'
     }));
   }, []);
 
@@ -20,10 +28,11 @@ export const IllustrationSender: React.FC = () => {
     <div 
         className="w-full h-full relative opacity-30 hover:opacity-100 transition-opacity duration-1000 overflow-hidden cursor-default select-none"
         style={{
-            // CSS Mask for fading out the bottom
             maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
         }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
     >
       {columns.map((col) => (
         <div
@@ -33,17 +42,27 @@ export const IllustrationSender: React.FC = () => {
         >
             {col.chars.map((char, rowIdx) => {
                 const charDelay = -col.startDelay + (rowIdx * (col.speed / 16));
+                const wordChar = col.word[rowIdx % col.word.length];
+
                 return (
                     <span 
                         key={rowIdx} 
-                        className="block py-[2px]" // Add slight vertical spacing
+                        className="relative block w-full h-[1.1em] text-center"
                         style={{
                             opacity: 0.05,
                             animation: `matrix-wave ${col.speed}s linear infinite`,
                             animationDelay: `${charDelay}s`
                         }}
                     >
-                        {char}
+                        {/* Layer 1: Matrix Char (Fades Out) */}
+                        <span className={`absolute inset-0 transition-opacity duration-500 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+                            {char}
+                        </span>
+                        
+                        {/* Layer 2: Word Char (Fades In) */}
+                        <span className={`absolute inset-0 transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                            {wordChar}
+                        </span>
                     </span>
                 );
             })}

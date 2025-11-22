@@ -8,10 +8,10 @@ export const MAX_TAG_LENGTH = 32;
 
 export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
-    system_name: 'ANONLOG.RU // 00s CHAT VIBE',
+    system_name: 'ANONLOG 1.01 // 00s VIBE',
     footer: 'Secure // Anonymous // Persistent',
     search_label: 'SEARCH //',
-    search_placeholder: 'ID OR KEYWORD...',
+    search_placeholder: 'KEYWORD OR TAG...',
     search_clear: '[CLEAR]',
     input_placeholder: 'ENTER MESSAGE...',
     chars_label: 'CHARS',
@@ -38,12 +38,15 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     tags_placeholder: 'Enter tags, comma separated',
     sort_newest: 'NEWEST FIRST',
     sort_oldest: 'OLDEST FIRST',
+    preloader_title: 'ANONLOG',
+    preloader_subtitle: 'LOAD MESSAGES',
+    next_msg_label: 'NEXT MESSAGE',
   },
   ru: {
-    system_name: 'ANONLOG.RU // ВАЙБ НУЛЕВЫХ',
+    system_name: 'АНОНЛОГ 1.01 // ВАЙБ НУЛЕВЫХ',
     footer: 'Безопасно // Анонимно // Надежно',
     search_label: 'ПОИСК //',
-    search_placeholder: 'ID ИЛИ ТЕКСТ...',
+    search_placeholder: 'КЛЮЧЕВОЕ СЛОВО ИЛИ ТЕГ...',
     search_clear: '[ОЧИСТИТЬ]',
     input_placeholder: 'ВВЕДИТЕ СООБЩЕНИЕ...',
     chars_label: 'СИМВ',
@@ -70,5 +73,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     tags_placeholder: 'Введите теги, разделяя их запятой',
     sort_newest: 'СНАЧАЛА НОВЫЕ',
     sort_oldest: 'СНАЧАЛА СТАРЫЕ',
+    preloader_title: 'АНОНЛОГ',
+    preloader_subtitle: 'ЗАГРУЗКА СООБЩЕНИЙ',
+    next_msg_label: 'СЛЕД. СООБЩЕНИЕ',
   }
 };

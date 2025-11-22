@@ -7,17 +7,15 @@ import { LAST_READ_KEY } from '../constants';
 type TabType = 'all' | 'mine';
 type SortOrder = 'newest' | 'oldest';
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId, onReply, onTagClick, allMessagesRaw, t, locale }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId, onReply, onTagClick, onFlashMessage, highlightedMessageId, allMessagesRaw, t, locale }) => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
 
-  // State to track when the user last viewed "My Dialogs"
   const [lastReadTime, setLastReadTime] = useState<number>(() => {
       const stored = localStorage.getItem(LAST_READ_KEY);
       return stored ? parseInt(stored, 10) : Date.now();
   });
 
-  // 1. Calculate ALL "My Dialogs" messages (unfiltered by search) to check for notifications
   const allMyDialogs = useMemo(() => {
     const raw = allMessagesRaw || messages;
     const myMessageIds = new Set(raw.filter(m => m.senderId === currentUserId).map(m => m.id));
@@ -29,7 +27,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
     });
   }, [allMessagesRaw, messages, currentUserId]);
 
-  // 2. Calculate visible messages for the current view (filtered by search if applied in App) AND Sorted
   const filteredMessages = useMemo(() => {
     let result: typeof messages = [];
 
@@ -49,7 +46,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
         });
     }
 
-    // Apply Sorting
     return result.sort((a, b) => {
         if (sortOrder === 'newest') {
             return b.timestamp - a.timestamp;
@@ -59,7 +55,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
     });
   }, [messages, activeTab, currentUserId, allMessagesRaw, sortOrder]);
 
-  // Check if there is any message in "My Dialogs" that is newer than lastReadTime
   const hasUnread = useMemo(() => {
       return allMyDialogs.some(msg => 
           msg.timestamp > lastReadTime && 
@@ -76,17 +71,18 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
       }
   };
 
-  // Helper to find parent sequence number
-  const getParentSequence = (parentId?: string) => {
-      if (!parentId || !allMessagesRaw) return undefined;
+  const getParentInfo = (parentId?: string | null) => {
+      if (!parentId || !allMessagesRaw) return { seq: undefined, senderId: undefined };
       const parent = allMessagesRaw.find(m => m.id === parentId);
-      return parent ? parent.sequenceNumber : undefined;
+      return { 
+          seq: parent ? parent.sequenceNumber : undefined,
+          senderId: parent ? parent.senderId : undefined
+      };
   };
 
   return (
     <div className="w-full">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-black/10 dark:border-white/10 pb-0">
-         {/* Tabs Left */}
          <div className="flex items-center gap-8">
             <button 
                 onClick={() => handleTabChange('all')}
@@ -111,7 +107,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
                 }`}
             >
             {t.my_dialogs_tab}
-            {/* Unread Indicator */}
             {hasUnread && activeTab !== 'mine' && (
                 <div className="w-[6px] h-[6px] rounded-full bg-[#FF4343] animate-pulse shadow-[0_0_8px_rgba(255,67,67,0.6)]"></div>
             )}
@@ -121,7 +116,6 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
             </button>
          </div>
 
-         {/* Sorting Controls Right */}
          <div className="flex items-center gap-3 pb-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
             <button 
                 onClick={() => setSortOrder('newest')}
@@ -147,19 +141,24 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-            {filteredMessages.map((msg) => (
-            <MessageItem 
-                key={msg.id} 
-                message={msg} 
-                currentUserId={currentUserId}
-                onReply={onReply}
-                onTagClick={onTagClick}
-                // Fix: Handle potential null parentId by falling back to undefined
-                parentSequenceNumber={getParentSequence(msg.parentId || undefined)}
-                t={t}
-                locale={locale}
-            />
-            ))}
+            {filteredMessages.map((msg) => {
+                const { seq, senderId } = getParentInfo(msg.parentId);
+                return (
+                    <MessageItem 
+                        key={msg.id} 
+                        message={msg} 
+                        currentUserId={currentUserId}
+                        onReply={onReply}
+                        onTagClick={onTagClick}
+                        onFlashMessage={onFlashMessage}
+                        parentSequenceNumber={seq}
+                        parentSenderId={senderId}
+                        isFlashHighlighted={highlightedMessageId === msg.id}
+                        t={t}
+                        locale={locale}
+                    />
+                );
+            })}
         </div>
       )}
     </div>

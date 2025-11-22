@@ -7,9 +7,7 @@ import {
   addDoc, 
   onSnapshot, 
   query, 
-  orderBy, 
-  limit, 
-  getDocs 
+  orderBy
 } from 'firebase/firestore';
 
 const USER_ID_KEY = 'anon_log_user_id';
@@ -66,21 +64,15 @@ export const useMessages = () => {
       .map(tag => tag.toLowerCase());
 
     try {
-      // Determine Sequence Number
-      // We fetch the very latest message by sequenceNumber to increment it.
-      // Note: In high-traffic apps, this needs a cloud function or transaction.
-      // For this MVP, client-side fetching is acceptable.
-      const lastMsgQuery = query(
-          collection(db, 'messages'), 
-          orderBy('sequenceNumber', 'desc'), 
-          limit(1)
-      );
-      const lastMsgSnap = await getDocs(lastMsgQuery);
-      let nextSequence = 1;
+      // OPTIMIZATION: Calculate Next Sequence Locally
+      // Instead of asking the server (slow), we look at the local messages we already have.
+      // Since messages are sorted by timestamp desc, the first one usually has the highest sequence.
+      // We iterate to be safe (in case of sorting race conditions), but purely in memory.
       
-      if (!lastMsgSnap.empty) {
-          const lastMsgData = lastMsgSnap.docs[0].data();
-          nextSequence = (lastMsgData.sequenceNumber || 0) + 1;
+      let nextSequence = 1;
+      if (messages.length > 0) {
+          const maxSeq = Math.max(...messages.map(m => m.sequenceNumber || 0));
+          nextSequence = maxSeq + 1;
       }
 
       // Construct Message
@@ -94,13 +86,15 @@ export const useMessages = () => {
       };
 
       // Write to Firebase
+      // Firebase SDK handles this optimistically locally, then syncs to cloud.
+      // Since we removed the 'await getDocs', this line executes immediately after calculation.
       await addDoc(collection(db, 'messages'), newMessage);
 
     } catch (e) {
       console.error("Error adding document: ", e);
     }
 
-  }, [userId]);
+  }, [userId, messages]); // Added messages dependency to calculate sequence
 
   return {
     messages,

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
 
-export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisible, replyingTo, onCancelReply, t }) => {
+export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisible, replyingTo, onCancelReply, cooldownRemaining, t }) => {
   const [text, setText] = useState('');
   const [tagInputText, setTagInputText] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
@@ -13,7 +13,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (text.trim().length === 0) return;
+    if (text.trim().length === 0 || cooldownRemaining > 0) return;
     
     const manualTags = tagInputText
         .split(',')
@@ -28,13 +28,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
     if (replyingTo) onCancelReply();
   };
 
-  // Strict Message Length Handler
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setText(val.slice(0, MAX_MESSAGE_LENGTH));
   };
 
-  // Strict Tag Length Handler
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     const constrained = val.split(',').map(segment => segment.slice(0, MAX_TAG_LENGTH)).join(',');
@@ -84,7 +82,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
          </div>
        )}
       
-      <div className="bg-white dark:bg-[#0a0a0a] border-t border-black dark:border-white p-4 pb-6 sm:pb-4">
+      <div className="bg-white dark:bg-[#0a0a0a] border-t border-black/10 dark:border-white/10 p-4 pb-6 sm:pb-4">
         <div className="max-w-[1600px] mx-auto flex flex-col gap-2">
           
           {/* Sticky Tag Input (Collapsible) */}
@@ -97,7 +95,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                         value={tagInputText}
                         onChange={handleTagChange}
                         placeholder={t.tags_placeholder}
-                        className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] text-black dark:text-white text-xs font-mono p-2 pr-8 border-b border-black dark:border-white focus:outline-none"
+                        className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] text-black dark:text-white text-xs font-mono p-2 pr-8 border-b border-black/10 dark:border-white/10 focus:outline-none border-t border-black/10 dark:border-white/10"
                     />
                     <button
                         type="button"
@@ -115,7 +113,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex flex-col shrink-0">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                <span className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 {t.quick_entry_label}
                 </span>
             </div>
@@ -132,7 +130,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                                 onChange={handleTextChange}
                                 placeholder={replyingTo ? `${t.replying_to_prefix}${replyingTo.sequenceNumber}...` : t.input_placeholder}
                                 maxLength={MAX_MESSAGE_LENGTH}
-                                className="w-full bg-transparent text-black dark:text-white font-mono text-sm sm:text-base font-bold pl-3 sm:pl-4 py-3 sm:py-4 pr-12 focus:outline-none placeholder-gray-400 dark:placeholder-gray-600"
+                                className="w-full bg-transparent text-black dark:text-white font-mono text-sm sm:text-base pl-3 sm:pl-4 py-3 sm:py-4 pr-12 focus:outline-none placeholder-gray-400 dark:placeholder-gray-600"
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-600 font-bold pointer-events-none">
                                 {text.length}
@@ -140,7 +138,6 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                         </div>
                     </div>
 
-                    {/* Toggle Tag Button (Sticky) */}
                     {!showTagInput && (
                         <button
                             type="button"
@@ -154,14 +151,13 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
                     <button
                     type="submit"
-                    disabled={text.trim().length === 0}
-                    className="bg-black dark:bg-white text-white dark:text-black px-4 sm:px-8 text-xs sm:text-sm font-bold uppercase tracking-widest hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    disabled={text.trim().length === 0 || cooldownRemaining > 0}
+                    className="border border-black dark:border-white text-black dark:text-white px-4 sm:px-8 text-xs sm:text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
-                    {t.send_btn}
+                    {cooldownRemaining > 0 ? `${cooldownRemaining}s` : t.send_btn}
                     </button>
                 </div>
                 
-                {/* Sticky Tag Preview */}
                 {detectedTags.length > 0 && (
                     <div className="flex items-center gap-2 overflow-x-auto w-full no-scrollbar pl-1">
                         {detectedTags.map((tag, idx) => (

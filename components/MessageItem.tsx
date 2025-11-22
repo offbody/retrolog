@@ -1,27 +1,26 @@
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { MessageItemProps } from '../types';
+import { IdentityWidget } from './IdentityWidget';
 
-export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, parentSequenceNumber, t, locale }) => {
+export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, onFlashMessage, parentSequenceNumber, parentSenderId, isFlashHighlighted, t, locale }) => {
   const date = new Date(message.timestamp);
   const timeString = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   const dateString = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
   
-  const seqId = message.sequenceNumber.toString().padStart(3, '0');
   const isOwnMessage = message.senderId === currentUserId;
 
-  // Highlight Logic
+  // Highlight Logic (Flash)
+  // We combine "Fresh" (just created) state with "Flash" (navigated to) state
   const isFresh = Date.now() - message.timestamp < 1000;
-  const [isHighlighted, setIsHighlighted] = useState(isFresh);
+  const [isFreshHighlighted, setIsFreshHighlighted] = useState(isFresh);
 
   useEffect(() => {
-    if (isHighlighted) {
-      const timer = setTimeout(() => {
-        setIsHighlighted(false);
-      }, 100);
+    if (isFreshHighlighted) {
+      const timer = setTimeout(() => setIsFreshHighlighted(false), 1400);
       return () => clearTimeout(timer);
     }
-  }, [isHighlighted]);
+  }, [isFreshHighlighted]);
 
   // Mobile Long Press Logic
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -58,10 +57,19 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
     if (message.parentId) {
       const parentEl = document.getElementById(message.parentId);
       if (parentEl) {
+        // Trigger the flash effect on the parent message
+        onFlashMessage(message.parentId);
         parentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   };
+
+  const formattedParentHash = useMemo(() => {
+      if (!parentSenderId) return '...';
+      const start = parentSenderId.substring(0, 4);
+      const end = parentSenderId.substring(parentSenderId.length - 4);
+      return `${start}•••${end}`.toUpperCase();
+  }, [parentSenderId]);
 
   const renderContent = (content: string) => {
     const parts = content.split(/(#[a-zA-Z0-9_а-яА-ЯёЁ]+)/g);
@@ -72,7 +80,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
           <button
             key={index}
             onClick={(e) => { e.stopPropagation(); onTagClick(part); }}
-            className="font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            className="font-bold text-blue-600 dark:text-blue-400 hover:text-black dark:hover:text-white hover:underline cursor-pointer transition-colors"
           >
             {part}
           </button>
@@ -82,18 +90,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
     });
   };
 
+  // Determine background color based on state
+  const bgColorClass = useMemo(() => {
+      if (isFreshHighlighted || isFlashHighlighted) {
+           return 'bg-[#C8D4EF] dark:bg-[#1e3a8a]'; // Flash color
+      }
+      return 'bg-[#dedede] dark:bg-[#262626]'; // Default color
+  }, [isFreshHighlighted, isFlashHighlighted]);
+
   return (
     <div id={message.id} className="w-full animate-fade-in relative">
-      {/* 
-         Card Container 
-         Refactored to Vertical Stack Layout
-      */}
       <div 
-        className={`w-full clip-corner p-6 flex flex-col gap-3 transition-all duration-1000 ease-out group relative touch-manipulation ${
-          isHighlighted 
-            ? 'bg-[#C8D4EF] dark:bg-[#1e3a8a]' 
-            : 'bg-[#dedede] dark:bg-[#262626]'
-        }`}
+        className={`w-full clip-corner p-6 flex flex-col gap-3 transition-colors duration-1000 ease-out group relative touch-manipulation ${bgColorClass}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onMouseDown={handleTouchStart}
@@ -101,14 +109,12 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         onMouseLeave={handleTouchEnd}
       >
         
-        {/* 1. META HEADER (ID, YOU, TIME, REPLY INFO) */}
+        {/* 1. META HEADER */}
         <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1">
             <div className="flex items-center flex-wrap gap-3 text-xs font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                 
-                {/* ID Group */}
-                <span className="whitespace-nowrap">
-                    {t.id_label} #{seqId}
-                </span>
+                {/* ID Widget (Small) */}
+                <IdentityWidget userId={message.senderId} t={t} size="small" compact />
 
                 {/* Separator */}
                 <span className="opacity-30">//</span>
@@ -128,7 +134,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </>
                 )}
 
-                {/* "Replying To" Indicator (Inline in Header) */}
+                {/* "Replying To" Indicator (Shows Parent Hash) */}
                 {parentSequenceNumber !== undefined && (
                     <>
                         <span className="opacity-30 hidden sm:inline">//</span>
@@ -140,17 +146,17 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                             </svg>
-                            <span>{t.replying_to_prefix}{parentSequenceNumber.toString().padStart(3, '0')}</span>
+                            <span>{t.replying_to_prefix}{formattedParentHash}</span>
                         </button>
                     </>
                 )}
             </div>
 
-            {/* Desktop Actions (Hover) - Positioned relatively in header to avoid overlap */}
+            {/* Desktop Actions (Hover) */}
             <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button 
                     onClick={handleReplyAction}
-                    className="text-black dark:text-white hover:opacity-60 transition-opacity"
+                    className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     title={t.reply_btn}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -159,7 +165,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 </button>
                 <button 
                     onClick={handleCopy}
-                    className="text-black dark:text-white hover:opacity-60 transition-opacity"
+                    className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     title={t.copy_btn}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -169,7 +175,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
             </div>
         </div>
 
-        {/* 2. TAGS SECTION (Now above content) */}
+        {/* 2. TAGS SECTION */}
         {message.tags && message.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
                 {message.tags.map((tag, idx) => (
@@ -191,7 +197,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
           </p>
         </div>
 
-        {/* Mobile Long Press Menu Overlay */}
+        {/* Mobile Menu */}
         {showMobileMenu && (
            <div className="absolute inset-0 z-20 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center gap-8 animate-fade-in clip-corner">
               <button onClick={handleReplyAction} className="flex flex-col items-center gap-2 p-4">

@@ -42,6 +42,9 @@ export interface Translations {
   tags_placeholder: string;
   sort_newest: string;
   sort_oldest: string;
+  preloader_title: string;
+  preloader_subtitle: string;
+  next_msg_label: string;
 }
 
 export interface MessageInputProps {
@@ -49,6 +52,7 @@ export interface MessageInputProps {
   replyingTo: Message | null;
   onCancelReply: () => void;
   shouldFocusOnReply?: boolean;
+  cooldownRemaining: number;
   t: Translations;
 }
 
@@ -57,6 +61,8 @@ export interface MessageListProps {
   currentUserId: string;
   onReply: (message: Message) => void;
   onTagClick: (tag: string) => void;
+  onFlashMessage: (id: string) => void;
+  highlightedMessageId: string | null;
   allMessagesRaw?: Message[]; // Needed to lookup parent sequence numbers
   t: Translations;
   locale: string;
@@ -67,7 +73,10 @@ export interface MessageItemProps {
   currentUserId: string;
   onReply: (message: Message) => void;
   onTagClick: (tag: string) => void;
-  parentSequenceNumber?: number; // To display "Replying to #..."
+  onFlashMessage: (id: string) => void;
+  parentSequenceNumber?: number; // Kept for fallback
+  parentSenderId?: string; // For "Reply to #HASH"
+  isFlashHighlighted?: boolean;
   t: Translations;
   locale: string;
 }
