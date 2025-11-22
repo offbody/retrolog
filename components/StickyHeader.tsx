@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Translations } from '../types';
 import { IdentityWidget } from './IdentityWidget';
@@ -35,8 +34,8 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, searchQue
                     type="text" 
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder={t.search_placeholder_short}
-                    className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-transparent focus:border-black dark:focus:border-white px-4 py-2 text-base font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none transition-colors rounded-sm"
+                    placeholder={t.search_placeholder}
+                    className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-transparent focus:border-black dark:focus:border-white px-4 py-2 text-sm font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none transition-colors rounded-sm"
                 />
                 {searchQuery && (
                     <button 

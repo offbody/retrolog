@@ -39,6 +39,15 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
   const handleTouchEnd = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const handleTouchMove = () => {
+    // If user moves finger (scrolling), cancel the long press timer immediately
+    if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
     }
   };
 
@@ -117,32 +126,15 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         className={`w-full clip-corner p-6 flex flex-col gap-3 transition-colors duration-1000 ease-out group relative touch-manipulation ${bgColorClass}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
         onMouseDown={handleTouchStart}
         onMouseUp={handleTouchEnd}
         onMouseLeave={handleTouchEnd}
       >
-        {/* ADMIN BUTTONS */}
-        {isAdmin && (
-            <div className="absolute top-2 right-2 flex gap-2 z-20">
-                <button
-                    onClick={handleBlockAction}
-                    className="px-2 h-6 bg-black text-white flex items-center justify-center font-bold shadow-md hover:bg-gray-800 text-[10px] uppercase tracking-wider"
-                    title="ADMIN: Block User"
-                >
-                    BLOCK
-                </button>
-                <button
-                    onClick={handleDeleteAction}
-                    className="w-6 h-6 bg-red-500 text-white flex items-center justify-center rounded-full font-bold shadow-md hover:bg-red-600"
-                    title="ADMIN: Delete Message"
-                >
-                    X
-                </button>
-            </div>
-        )}
         
         {/* 1. META HEADER */}
-        <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1">
+        <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1 gap-2">
+            {/* LEFT SIDE: Info */}
             <div className="flex items-center flex-wrap gap-3 text-xs font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                 
                 {/* ID Widget (Small) */}
@@ -194,26 +186,49 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 )}
             </div>
 
-            {/* Desktop Actions (Hover) */}
-            <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button 
-                    onClick={handleReplyAction}
-                    className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    title={t.reply_btn}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                    </svg>
-                </button>
-                <button 
-                    onClick={handleCopy}
-                    className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    title={t.copy_btn}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.38l-7.5 5.47m7.5-6.818V7.375c0-.621-.504-1.125-1.125-1.125H9.375" />
-                    </svg>
-                </button>
+            {/* RIGHT SIDE: Controls (Admin + Standard) */}
+            <div className="flex items-center gap-4">
+                {/* ADMIN BUTTONS */}
+                {isAdmin && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleBlockAction}
+                            className="px-2 h-6 bg-black text-white flex items-center justify-center font-bold shadow-md hover:bg-gray-800 text-[10px] uppercase tracking-wider"
+                            title="ADMIN: Block User"
+                        >
+                            BLOCK
+                        </button>
+                        <button
+                            onClick={handleDeleteAction}
+                            className="w-6 h-6 bg-red-500 text-white flex items-center justify-center rounded-full font-bold shadow-md hover:bg-red-600"
+                            title="ADMIN: Delete Message"
+                        >
+                            X
+                        </button>
+                    </div>
+                )}
+
+                {/* Desktop Actions (Hover) */}
+                <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button 
+                        onClick={handleReplyAction}
+                        className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        title={t.reply_btn}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                        </svg>
+                    </button>
+                    <button 
+                        onClick={handleCopy}
+                        className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        title={t.copy_btn}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.38l-7.5 5.47m7.5-6.818V7.375c0-.621-.504-1.125-1.125-1.125H9.375" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
