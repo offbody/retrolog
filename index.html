@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANONLOG.RU // ВАЙБ ОБЩЕНИЯ НУЛЕВЫХ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CDN for instant styling without build steps -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              mono: ['"Fira Code"', 'monospace'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      /* GLOBAL STYLES & RESETS */
+      body {
+        transition: background-color 0.3s ease, color 0.3s ease;
+        overflow-x: hidden; /* Prevent horizontal scroll from animations */
+      }
+      
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Hides scrollbar for Chrome/Safari/Opera */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      /* Hides scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+
+      /* Custom Shape Utilities (Cut Corners) */
+      .clip-corner {
+        clip-path: polygon(
+          0 0,
+          100% 0,
+          100% calc(100% - 30px),
+          calc(100% - 30px) 100%,
+          0 100%
+        );
+      }
+
+      .clip-corner-top {
+        clip-path: polygon(
+            0 0,
+            calc(100% - 30px) 0,
+            100% 30px,
+            100% 100%,
+            0 100%
+        );
+      }
+
+      /* Custom Scrollbar - Light Mode */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #ffffff;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #000000;
+      }
+
+      /* Custom Scrollbar - Dark Mode */
+      .dark ::-webkit-scrollbar-track {
+        background: #050505;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #ffffff;
+      }
+
+      /* MATRIX ANIMATIONS (Global Keyframes for Cross-browser support) */
+      @keyframes matrix-wave {
+        0% { opacity: 0.05; }
+        10% { opacity: 1; } /* The "Head" of the drop */
+        30% { opacity: 0.4; } /* The "Trail" */
+        100% { opacity: 0.05; }
+      }
+
+      @keyframes matrix-wave-rx {
+        0% { opacity: 0.05; }
+        5% { opacity: 1; } /* Sharper "Head" */
+        25% { opacity: 0.4; } 
+        100% { opacity: 0.05; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-white text-black dark:bg-[#050505] dark:text-white antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
