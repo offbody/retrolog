@@ -166,6 +166,16 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </>
                 )}
 
+                {/* "ADMIN" Badge */}
+                {message.isAdmin && (
+                    <>
+                        <span className="opacity-30">//</span>
+                        <span className="bg-[#FF7F50] text-black px-1.5 py-0.5 text-[10px]">
+                            ADMIN
+                        </span>
+                    </>
+                )}
+
                 {/* "Replying To" Indicator (Shows Parent Hash) */}
                 {parentSequenceNumber !== undefined && (
                     <>

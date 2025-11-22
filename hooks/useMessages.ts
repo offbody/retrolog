@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Message } from '../types';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { 
   collection, 
   addDoc, 
@@ -84,6 +84,9 @@ export const useMessages = () => {
           const maxSeq = Math.max(...messages.map(m => m.sequenceNumber || 0));
           nextSequence = maxSeq + 1;
       }
+      
+      // Check if user is logged in as admin
+      const isUserAdmin = !!auth.currentUser;
 
       // Construct Message
       const newMessage: Omit<Message, 'id'> = {
@@ -92,7 +95,8 @@ export const useMessages = () => {
         sequenceNumber: nextSequence,
         senderId: userId,
         parentId: parentId || null,
-        tags: uniqueTags
+        tags: uniqueTags,
+        isAdmin: isUserAdmin
       };
       
       // Optimistic render could be done here, but Firestore is fast enough with this fix.

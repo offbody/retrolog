@@ -7,6 +7,7 @@ export interface Message {
   senderId: string;
   parentId?: string | null; // Allow null for Firestore compatibility
   tags: string[];
+  isAdmin?: boolean;
 }
 
 export type Language = 'ru' | 'en';
