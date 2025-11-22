@@ -1,0 +1,38 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#050505"/>
+  
+  <!-- Grid Pattern -->
+  <defs>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#grid)" />
+  
+  <!-- Abstract Vertical Lines (Matrix Rain Vibe) -->
+  <g stroke="#222" stroke-width="2">
+     <line x1="120" y1="-100" x2="120" y2="400" />
+     <line x1="1080" y1="200" x2="1080" y2="800" />
+     <line x1="300" y1="50" x2="300" y2="500" opacity="0.5" />
+     <line x1="900" y1="-50" x2="900" y2="350" opacity="0.5" />
+     <line x1="600" y1="450" x2="600" y2="630" opacity="0.3" />
+  </g>
+
+  <!-- Glitch Logo Effect -->
+  <g font-family="'Courier New', monospace" font-weight="bold" text-anchor="middle" dominant-baseline="middle">
+    <!-- Red Offset -->
+    <text x="604" y="315" font-size="90" fill="#FF4343" opacity="0.7">ANONLOG.RU</text>
+    <!-- Cyan Offset -->
+    <text x="596" y="315" font-size="90" fill="#00FFFF" opacity="0.7">ANONLOG.RU</text>
+    <!-- Main White Text -->
+    <text x="600" y="315" font-size="90" fill="#FFFFFF">ANONLOG.RU</text>
+    
+    <!-- Subtitle -->
+    <text x="600" y="390" font-size="24" fill="#888888" letter-spacing="6" font-weight="normal">ВАЙБ НУЛЕВЫХ</text>
+  </g>
+  
+  <!-- Decorative Corners -->
+  <path d="M 40 40 L 100 40 M 40 40 L 40 100" stroke="white" stroke-width="4" fill="none"/>
+  <path d="M 1160 590 L 1100 590 M 1160 590 L 1160 530" stroke="white" stroke-width="4" fill="none"/>
+</svg>
