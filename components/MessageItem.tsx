@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { MessageItemProps } from '../types';
 import { IdentityWidget } from './IdentityWidget';
 
-export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, onVote, parentSequenceNumber, parentSenderId, isFlashHighlighted, isAdmin, t, locale }) => {
+export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, onVote, parentSequenceNumber, parentSenderId, allMessages, isFlashHighlighted, isAdmin, t, locale }) => {
   const date = new Date(message.timestamp);
   const timeString = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   const dateString = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -84,9 +83,8 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
 
   // Voting Logic
   const votes = message.votes || {} as Record<string, number>;
-  // Explicitly cast Object.values(votes) to number[] to avoid TypeScript inference issues
   const score = (Object.values(votes) as number[]).reduce((acc: number, curr: number) => acc + curr, 0);
-  const userVote = votes[currentUserId] || 0; // 1 (up), -1 (down), or 0
+  const userVote = votes[currentUserId] || 0;
 
   const handleVoteAction = (e: React.MouseEvent, type: 'up' | 'down') => {
       e.stopPropagation();
@@ -99,6 +97,13 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
       const end = parentSenderId.substring(parentSenderId.length - 4);
       return `${start}•••${end}`.toUpperCase();
   }, [parentSenderId]);
+
+  // Find Parent Content for Quote
+  const parentContent = useMemo(() => {
+      if (!message.parentId || !allMessages) return null;
+      const parent = allMessages.find(m => m.id === message.parentId);
+      return parent ? parent.content : null;
+  }, [message.parentId, allMessages]);
 
   const renderContent = (content: string) => {
     const parts = content.split(/(#[a-zA-Z0-9_а-яА-ЯёЁ]+)/g);
@@ -122,9 +127,9 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
   // Determine background color based on state
   const bgColorClass = useMemo(() => {
       if (isFreshHighlighted || isFlashHighlighted) {
-           return 'bg-[#C8D4EF] dark:bg-[#1e3a8a]'; // Flash color
+           return 'bg-[#C8D4EF] dark:bg-[#3a3a3a]'; // Flash color
       }
-      return 'bg-[#F2F2F2] dark:bg-[#1a1a1a]'; // Default background
+      return 'bg-[#F2F2F2] dark:bg-[#252525]'; // Default background
   }, [isFreshHighlighted, isFlashHighlighted]);
 
   return (
@@ -226,6 +231,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
             </div>
         </div>
 
+        {/* 1.5. QUOTE BLOCK (New) */}
+        {parentContent && (
+            <div 
+                onClick={handleScrollToParent}
+                className="cursor-pointer flex border-l-2 border-black/20 dark:border-white/20 pl-3 py-1 my-1 hover:border-black dark:hover:border-white transition-colors"
+            >
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
+                    {parentContent}
+                </p>
+            </div>
+        )}
+
         {/* 2. TAGS SECTION */}
         {message.tags && message.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -291,7 +308,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         {/* Mobile Menu */}
         {showMobileMenu && (
            <div className="absolute inset-0 z-20 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center gap-8 animate-fade-in clip-corner">
-              {/* Mobile menu content omitted for brevity - same as before */}
               <button onClick={handleReplyAction} className="flex flex-col items-center gap-2 p-4">
                  <div className="w-14 h-14 rounded-full border-2 border-black dark:border-white flex items-center justify-center bg-black text-white dark:bg-white dark:text-black shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

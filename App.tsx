@@ -21,7 +21,11 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const App: React.FC = () => {
   const { messages, addMessage, deleteMessage, blockUser, toggleVote, userId } = useMessages();
+  
+  // Search & Tag States (Independent)
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
   const [showStickyInput, setShowStickyInput] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   
@@ -33,7 +37,7 @@ const App: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false); // Mobile Search Mode
 
-  // Track Screen Size - Breakpoint set to 768px (md) to handle landscape phones as mobile
+  // Track Screen Size - Breakpoint set to 768px (md) to include landscape phones
   useEffect(() => {
       const checkMobile = () => {
           setIsMobile(window.innerWidth < 768);
@@ -155,9 +159,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Only show sticky header if the element is NOT intersecting
-        // AND it is positioned ABOVE the viewport (top < 0).
-        // This prevents it from showing if the element is just weirdly positioned or loaded initially.
         const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
         setShowStickyInput(isScrolledPast);
       },
@@ -177,7 +178,17 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Centralized Filter Logic
   const filteredMessages = useMemo(() => {
+    // 1. Tag Filter Priority
+    if (selectedTag) {
+        const targetTag = selectedTag.toLowerCase();
+        return messages.filter(msg => 
+            (msg.tags || []).some(t => t.toLowerCase() === targetTag)
+        );
+    }
+
+    // 2. Search Query Filter
     if (!searchQuery.trim()) return messages;
 
     const query = searchQuery.toLowerCase();
@@ -189,26 +200,20 @@ const App: React.FC = () => {
       
       return contentMatch || idMatch || tagMatch;
     });
-  }, [messages, searchQuery]);
+  }, [messages, searchQuery, selectedTag]);
 
-  // Calculate Popular Tags (Merging Dynamic + Predefined)
   const popularTags = useMemo(() => {
       const counts: Record<string, number> = {};
       
-      // 1. Count dynamic tags from messages
       messages.forEach(msg => {
           if (msg.tags) {
               msg.tags.forEach(tag => {
-                  // Normalize for counting (e.g. #Tag -> #tag)
-                  // We'll keep the original casing in the UI if possible, or lowercase everything
                   const key = tag.trim(); 
                   counts[key] = (counts[key] || 0) + 1;
               });
           }
       });
       
-      // 2. Ensure Predefined tags are in the list (even if count is 0)
-      // Note: Predefined tags don't have '#', so we check against that
       PREDEFINED_TAGS.forEach(preTag => {
           const keyWithHash = '#' + preTag;
           if (!counts[keyWithHash]) {
@@ -219,14 +224,12 @@ const App: React.FC = () => {
       return Object.entries(counts)
           .sort(([, countA], [, countB]) => countB - countA)
           .map(([tag, count]) => ({ tag, count }));
-      // Removed slice to show all predefined + dynamic
   }, [messages]);
 
   const handleSendMessage = (content: string, manualTags?: string[]) => {
       const now = Date.now();
       const timeSinceLast = now - lastSentTime.current;
       
-      // 15 seconds cooldown
       if (timeSinceLast < 15000) {
           return;
       }
@@ -236,18 +239,25 @@ const App: React.FC = () => {
       setCooldownRemaining(15);
   };
 
+  // Tag Click Handler: Sets Tag, Clears Search
   const handleTagClick = (tag: string) => {
-      // If clicking same tag, clear search. Else set tag.
-      if (searchQuery === tag) {
-          setSearchQuery('');
+      if (selectedTag === tag) {
+          setSelectedTag(null); // Toggle off
       } else {
-          setSearchQuery(tag);
+          setSelectedTag(tag);
+          setSearchQuery(''); // Clear independent search
           window.scrollTo({ top: 0, behavior: 'smooth' });
       }
   };
 
-  // RENDER GOD MODE LOGIN
-  // Only show login if user is not already authenticated
+  // Search Change Handler: Sets Search, Clears Tag
+  const handleSearchChange = (val: string) => {
+      setSearchQuery(val);
+      if (val.trim().length > 0) {
+          setSelectedTag(null); // Reset tag selection if typing
+      }
+  };
+
   if (showAdminLogin && !isAdmin && isAuthChecked) {
       return <AdminLogin onLogin={handleAdminLogin} t={t} />;
   }
@@ -256,24 +266,23 @@ const App: React.FC = () => {
     <>
       <Preloader isVisible={isLoading} t={t} />
       
-      {/* Sticky Header - Enabled on ALL devices when scrolled */}
+      {/* Sticky Header */}
       <StickyHeader 
         isVisible={showStickyInput} 
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange} // Use new handler
         userId={userId}
         t={t}
       />
       
       {/* MOBILE BURGER MENU OVERLAY */}
       {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[60] bg-white dark:bg-[#111111] p-6 flex flex-col font-mono">
+          <div className="fixed inset-0 z-[60] bg-white dark:bg-[#121212] p-6 flex flex-col font-mono">
               <div className="flex justify-end mb-8">
                   <button 
                     onClick={() => setIsMobileMenuOpen(false)} 
                     className="p-1.5 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
                   >
-                      {/* Close Icon - Sized exactly like the Burger icon (w-5 h-5) */}
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -281,8 +290,7 @@ const App: React.FC = () => {
               </div>
               
               <div className="flex flex-col gap-6 items-center justify-center flex-1 w-full max-w-sm mx-auto">
-                  
-                  {/* 1. Identity Block (TOP) */}
+                  {/* 1. Identity Block */}
                   <div className="w-full border border-dashed border-black/30 dark:border-white/30 p-6 flex flex-col items-center gap-4">
                       <span className="text-xs font-bold uppercase tracking-widest opacity-50">{t.system_name}</span>
                       <div className="scale-125">
@@ -292,7 +300,7 @@ const App: React.FC = () => {
 
                   <div className="w-full h-[1px] bg-black/10 dark:bg-white/10 my-2"></div>
                   
-                  {/* 2. Language Toggle Styled Button (BOTTOM) */}
+                  {/* 2. Language Toggle */}
                   <button 
                       onClick={toggleLanguage}
                       className="w-full border border-black dark:border-white p-4 flex items-center justify-center gap-4 text-lg font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
@@ -309,7 +317,6 @@ const App: React.FC = () => {
                   )}
               </div>
 
-              {/* Copyright Footer */}
               <div className="mt-auto pt-8 text-center opacity-40 text-[10px] uppercase tracking-widest leading-relaxed">
                   <p>{t.mobile_footer_text_1}</p>
                   <p>{t.mobile_footer_text_2}</p>
@@ -317,17 +324,15 @@ const App: React.FC = () => {
           </div>
       )}
 
-      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#111111] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#121212] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <div className="w-full max-w-[1600px] mx-auto px-6 sm:p-12 pt-6">
           
-          {/* Header - Uses 'md' breakpoint to force mobile layout on landscape phones */}
-          <header className="mb-2 md:mb-8 w-full">
-             {/* DESKTOP (Large screens > 1024px) */}
+          <header className="mb-2 md:mb-8 lg:mb-8 w-full">
+             {/* DESKTOP */}
              <div className="hidden lg:flex items-center justify-between h-10 gap-4">
                 <div className="flex-1 flex justify-start items-center gap-8">
                    <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
                    
-                   {/* DESKTOP SEARCH IN HEADER */}
                    <div className="flex items-center gap-4">
                         <span className="text-sm font-bold uppercase tracking-widest text-black dark:text-white whitespace-nowrap">
                             {t.search_label}
@@ -336,13 +341,13 @@ const App: React.FC = () => {
                             <input 
                                 type="text" 
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => handleSearchChange(e.target.value)} // Use new handler
                                 placeholder={t.search_placeholder}
                                 className="w-full bg-transparent border-b border-black/20 dark:border-white/20 py-1 text-sm font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
                             />
                             {searchQuery && (
                                 <button 
-                                    onClick={() => setSearchQuery('')}
+                                    onClick={() => handleSearchChange('')}
                                     className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase text-gray-400 hover:text-black dark:hover:text-white"
                                 >
                                     X
@@ -370,7 +375,7 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-             {/* TABLET PORTRAIT (Between 768px and 1024px) */}
+             {/* TABLET */}
             <div className="hidden md:flex lg:hidden flex-col gap-6">
                 <div className="flex items-center justify-between w-full">
                     <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
@@ -392,10 +397,9 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-            {/* MOBILE PORTRAIT & LANDSCAPE PHONES (< 768px) */}
+            {/* MOBILE */}
             <div className="flex md:hidden flex-col gap-6">
                 {isSearchMode ? (
-                    /* SEARCH MODE HEADER */
                     <div className="flex items-center gap-3 w-full border-b border-black dark:border-white pb-2 h-10 transition-all">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 shrink-0">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -404,13 +408,13 @@ const App: React.FC = () => {
                             autoFocus
                             type="text" 
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => handleSearchChange(e.target.value)} // Use new handler
                             placeholder={t.search_placeholder_short}
                             className="flex-1 bg-transparent text-base font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
                         />
                         <button 
                             onClick={() => {
-                                if (searchQuery) setSearchQuery('');
+                                if (searchQuery) handleSearchChange('');
                                 else setIsSearchMode(false);
                             }}
                             className="text-xs font-bold uppercase tracking-widest shrink-0"
@@ -423,24 +427,9 @@ const App: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    /* DEFAULT MOBILE HEADER */
-                    <div className="flex items-center justify-between w-full h-10 relative">
-                        {/* Top Left: Identity */}
+                    <div className="flex items-center justify-between w-full h-10">
                         <IdentityWidget userId={userId} t={t} compact={true} />
-                        
-                        {/* Landscape Mobile Logo (Visible only on SM screens (landscape phone), centered absolutely) */}
-                        <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <a 
-                              href="/"
-                              className="border border-dashed border-black dark:border-white/50 px-3 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                            >
-                              {t.system_name}
-                            </a>
-                        </div>
-                        
-                        {/* Top Right: Theme, Search, Menu */}
                         <div className="flex items-center gap-3">
-                            {/* Compact Theme Toggle */}
                             <button 
                                 onClick={toggleTheme}
                                 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-black dark:text-white hover:opacity-70 transition-opacity"
@@ -466,7 +455,6 @@ const App: React.FC = () => {
                                 onClick={() => setIsMobileMenuOpen(true)}
                                 className="p-1.5 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                             >
-                                {/* Burger Icon */}
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                                 </svg>
@@ -475,25 +463,28 @@ const App: React.FC = () => {
                     </div>
                 )}
                 
-                {/* Bottom Center: Logo (Visible ONLY on Portrait Mobile) */}
-                {!isSearchMode && (
-                    <div className="flex sm:hidden justify-center items-center w-full">
-                        <a 
-                        href="/"
-                        className="border border-dashed border-black dark:border-white/50 px-3 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                        >
-                        {t.system_name}
-                        </a>
-                    </div>
-                )}
+                <div className="hidden sm:flex justify-center items-center w-full">
+                    <a 
+                      href="/"
+                      className="border border-dashed border-black dark:border-white/50 px-3 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+                    >
+                      {t.system_name}
+                    </a>
+                </div>
+                {/* Mobile Landscape Logo Position */}
+                <div className="sm:hidden flex justify-center">
+                     <a 
+                      href="/"
+                      className="border border-dashed border-black dark:border-white/50 px-3 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+                    >
+                      {t.system_name}
+                    </a>
+                </div>
             </div>
           </header>
 
-          {/* Main Content - Tight gap on ALL mobile/landscape phone screens (gap-1 up to md, then gap-16) */}
-          <div className="flex flex-col gap-1 md:gap-16">
+          <div className="flex flex-col gap-4 md:gap-16">
             <section ref={inputSectionRef} className="w-full mx-auto flex flex-col lg:flex-row items-stretch justify-center gap-4 lg:gap-8">
-               
-               {/* Left Illustration: Hidden on mobile (< md) or if panel is hidden */}
                {!isPanelHidden && (
                    <div className="hidden lg:block flex-1 min-w-0">
                       <IllustrationSender />
@@ -501,9 +492,6 @@ const App: React.FC = () => {
                )}
 
                <div className={`w-full ${isPanelHidden ? 'w-full' : 'max-w-md'} mx-auto lg:mx-0 flex flex-col gap-6 shrink-0 z-10 transition-all duration-300`}>
-                 
-                 {/* Input Form: Hidden if panel is hidden OR ON MOBILE (< md) */}
-                 {/* On Mobile/Landscape, we hide this and rely on StickyInput */}
                  <div className={`flex-col gap-6 ${isPanelHidden ? 'hidden' : 'hidden md:flex'}`}>
                      <InputForm 
                         onSendMessage={handleSendMessage} 
@@ -515,7 +503,6 @@ const App: React.FC = () => {
                      />
                  </div>
 
-                 {/* Panel Toggle Button - Hidden on Mobile */}
                  <button 
                     onClick={() => setIsPanelHidden(!isPanelHidden)}
                     className="hidden md:flex w-full text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black dark:hover:text-white transition-colors items-center justify-center gap-2 py-2 border-y border-transparent hover:border-black/5 dark:hover:border-white/5"
@@ -538,7 +525,6 @@ const App: React.FC = () => {
                  </button>
                </div>
 
-               {/* Right Illustration: Hidden on mobile or if panel is hidden */}
                {!isPanelHidden && (
                    <div className="hidden lg:block flex-1 min-w-0">
                       <IllustrationReceiver />
@@ -546,12 +532,12 @@ const App: React.FC = () => {
                )}
             </section>
 
-            <main className="w-full max-w-[1600px] mx-auto mt-2 sm:mt-0">
-              <PopularTags tags={popularTags} onTagClick={handleTagClick} activeTag={searchQuery} t={t} />
+            <main className="w-full max-w-[1600px] mx-auto">
+              {/* Pass selectedTag as activeTag to PopularTags */}
+              <PopularTags tags={popularTags} onTagClick={handleTagClick} activeTag={selectedTag || ''} t={t} />
               
-              {/* TABLET SEARCH BAR (Hidden on Mobile due to header search, hidden on Desktop due to header search) */}
               <div className="w-full hidden md:block lg:hidden mb-8">
-                  <SearchBar value={searchQuery} onChange={setSearchQuery} t={t} />
+                  <SearchBar value={searchQuery} onChange={handleSearchChange} t={t} />
               </div>
               
               <MessageList 
@@ -580,7 +566,6 @@ const App: React.FC = () => {
 
         <ScrollToTop />
 
-        {/* Sticky Input: Visible on scroll OR if panel is hidden OR ALWAYS ON MOBILE (< md) */}
         <StickyInput 
           onSendMessage={handleSendMessage} 
           isVisible={showStickyInput || isPanelHidden || isMobile} 

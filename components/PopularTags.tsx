@@ -12,6 +12,9 @@ interface PopularTagsProps {
 export const PopularTags: React.FC<PopularTagsProps> = ({ tags, onTagClick, activeTag, t }) => {
   if (tags.length === 0) return null;
 
+  // Limit to 30 tags to prevent layout overflow and keep it clean (~3 rows on desktop)
+  const visibleTags = tags.slice(0, 30);
+
   return (
     <div className="w-full mb-8">
       <div className="flex items-center gap-4 mb-4">
@@ -21,9 +24,10 @@ export const PopularTags: React.FC<PopularTagsProps> = ({ tags, onTagClick, acti
          <div className="h-[1px] w-full bg-black/10 dark:bg-white/10"></div>
       </div>
       
-      {/* Layout change: nowrap + scroll for mobile (< md), grid for md+. Negative margins for edge-to-edge effect on small screens. */}
-      <div className="flex flex-nowrap overflow-x-auto md:flex-wrap gap-2 pb-2 md:pb-0 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0">
-         {tags.map((item, idx) => {
+      {/* Layout change: nowrap + scroll for mobile. Wrap + height limit for desktop (3 rows approx) */}
+      {/* md:max-h-[120px] fits approx 3 rows strictly */}
+      <div className="flex flex-nowrap overflow-x-auto md:flex-wrap gap-2 pb-2 md:pb-0 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0 md:max-h-[120px] md:overflow-hidden">
+         {visibleTags.map((item, idx) => {
              const isActive = activeTag.toLowerCase() === item.tag.toLowerCase() || activeTag.toLowerCase().includes(item.tag.toLowerCase());
              return (
                  <button

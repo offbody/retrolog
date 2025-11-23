@@ -44,11 +44,8 @@ export interface Translations {
   add_tag_btn: string;
   tags_placeholder: string;
   sort_newest: string;
-  sort_newest_short: string;
   sort_oldest: string;
-  sort_oldest_short: string;
   sort_best: string;
-  sort_best_short: string;
   popular_tags_label: string;
   preloader_title: string;
   preloader_subtitle: string;
@@ -105,6 +102,7 @@ export interface MessageItemProps {
   onVote: (messageId: string, voteType: 'up' | 'down') => void;
   parentSequenceNumber?: number; // Kept for fallback
   parentSenderId?: string; // For "Reply to #HASH"
+  allMessages?: Message[]; // NEW: To find parent content
   isFlashHighlighted?: boolean;
   isAdmin: boolean;
   t: Translations;

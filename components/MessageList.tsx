@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { MessageListProps, Message } from '../types';
 import { MessageItem } from './MessageItem';
@@ -135,7 +136,9 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
                 onClick={() => setSortOrder('oldest')}
                 className={`transition-colors whitespace-nowrap ${sortOrder === 'oldest' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
             >
+                {/* Short label for Mobile/Tablets (< lg) */}
                 <span className="lg:hidden">{t.sort_oldest_short}</span>
+                {/* Long label for Desktop (>= lg) */}
                 <span className="hidden lg:inline">{t.sort_oldest}</span>
             </button>
             <span className="opacity-30 text-black dark:text-white">//</span>
@@ -180,6 +183,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
                         onVote={onVote}
                         parentSequenceNumber={seq}
                         parentSenderId={senderId}
+                        allMessages={allMessagesRaw || messages}
                         isFlashHighlighted={highlightedMessageId === msg.id}
                         isAdmin={isAdmin}
                         t={t}

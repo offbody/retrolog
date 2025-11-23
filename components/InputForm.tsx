@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { MessageInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
@@ -122,7 +121,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
       >
         <label htmlFor="message-input" className="sr-only">Message</label>
         
-        <div className={`relative w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''} ${showTagInput ? 'h-72' : 'h-64'}`}>
+        <div className={`relative w-full bg-[#f2f2f2] dark:bg-[#252525] clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''} ${showTagInput ? 'h-72' : 'h-64'}`}>
           
           {showTagInput && (
               <div className="w-full px-8 pt-8 pb-2 animate-fade-in shrink-0">

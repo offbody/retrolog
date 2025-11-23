@@ -13,7 +13,7 @@ interface StickyHeaderProps {
 export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, searchQuery, onSearchChange, userId, t }) => {
   return (
     <div 
-      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#111111]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
+      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#121212]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
@@ -35,7 +35,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, searchQue
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder={t.search_placeholder_short}
-                    className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-transparent focus:border-black dark:focus:border-white px-4 py-2 text-base font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none transition-colors rounded-sm"
+                    className="w-full bg-[#f2f2f2] dark:bg-[#252525] border border-transparent focus:border-black dark:focus:border-white px-4 py-2 text-base font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none transition-colors rounded-sm"
                 />
                 {searchQuery && (
                     <button 

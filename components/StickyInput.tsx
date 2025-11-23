@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
@@ -77,7 +76,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 w-full z-50 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md pb-safe ${
+      className={`fixed bottom-[-1px] left-0 w-full z-50 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
@@ -100,7 +99,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
        {/* Tag Input Area (Collapsible) */}
        {showTagInput && (
-          <div className="w-full bg-[#f2f2f2] dark:bg-[#1a1a1a] border-t border-black/10 dark:border-white/10 px-4 py-2 relative">
+          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-black/10 dark:border-white/10 px-4 py-2 relative">
                <div className="relative">
                     <input 
                         ref={tagInputRef}
@@ -123,7 +122,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
           </div>
        )}
 
-       <div className="w-full border-t border-black/10 dark:border-white/10 px-4 py-3 flex items-center gap-4 bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md">
+       <div className="w-full border-t border-black/10 dark:border-white/10 px-4 py-3 flex items-center gap-4 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md">
        <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-4">
           {/* Toggle Tags Button */}
           {!showTagInput && (
@@ -145,11 +144,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                 value={text}
                 onChange={handleTextChange}
                 placeholder={t.input_placeholder}
-                className="w-full bg-transparent text-black dark:text-white text-base pr-14 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+                className="w-full bg-transparent text-black dark:text-white text-base pr-14 placeholder-black dark:placeholder-white focus:outline-none"
               />
               
               {/* Character Counter / Tags */}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#111111] to-transparent">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#252525] to-transparent">
                   {detectedTags.length > 0 ? (
                      <div className="flex gap-1">
                         {detectedTags.slice(0, 2).map((tag, i) => (

@@ -23,7 +23,7 @@ export const Preloader: React.FC<PreloaderProps> = ({ isVisible, t }) => {
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-[#111111] transition-opacity duration-500 ease-out pointer-events-none ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white dark:bg-[#121212] transition-opacity duration-500 ease-out pointer-events-none ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
