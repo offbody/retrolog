@@ -3,7 +3,7 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { MessageItemProps } from '../types';
 import { IdentityWidget } from './IdentityWidget';
 
-export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, parentSequenceNumber, parentSenderId, isFlashHighlighted, isAdmin, t, locale }) => {
+export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, onVote, parentSequenceNumber, parentSenderId, isFlashHighlighted, isAdmin, t, locale }) => {
   const date = new Date(message.timestamp);
   const timeString = date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   const dateString = date.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -11,7 +11,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
   const isOwnMessage = message.senderId === currentUserId;
 
   // Highlight Logic (Flash)
-  // We combine "Fresh" (just created) state with "Flash" (navigated to) state
   const isFresh = Date.now() - message.timestamp < 1000;
   const [isFreshHighlighted, setIsFreshHighlighted] = useState(isFresh);
 
@@ -44,7 +43,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
   };
 
   const handleTouchMove = () => {
-    // If user moves finger (scrolling), cancel the long press timer immediately
     if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
@@ -63,7 +61,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
 
   const handleDeleteAction = (e: React.MouseEvent) => {
       e.stopPropagation();
-      // ONE-CLICK DELETE FOR ADMIN (NO CONFIRMATION)
       onDeleteMessage(message.id);
   };
 
@@ -79,11 +76,21 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
     if (message.parentId) {
       const parentEl = document.getElementById(message.parentId);
       if (parentEl) {
-        // Trigger the flash effect on the parent message
         onFlashMessage(message.parentId);
         parentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+  };
+
+  // Voting Logic
+  const votes = message.votes || {} as Record<string, number>;
+  // Explicitly cast Object.values(votes) to number[] to avoid TypeScript inference issues
+  const score = (Object.values(votes) as number[]).reduce((acc: number, curr: number) => acc + curr, 0);
+  const userVote = votes[currentUserId] || 0; // 1 (up), -1 (down), or 0
+
+  const handleVoteAction = (e: React.MouseEvent, type: 'up' | 'down') => {
+      e.stopPropagation();
+      onVote(message.id, type);
   };
 
   const formattedParentHash = useMemo(() => {
@@ -117,7 +124,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
       if (isFreshHighlighted || isFlashHighlighted) {
            return 'bg-[#C8D4EF] dark:bg-[#1e3a8a]'; // Flash color
       }
-      return 'bg-[#dedede] dark:bg-[#262626]'; // Default color
+      return 'bg-[#F2F2F2] dark:bg-[#1a1a1a]'; // Default background
   }, [isFreshHighlighted, isFlashHighlighted]);
 
   return (
@@ -134,21 +141,13 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         
         {/* 1. META HEADER */}
         <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1 gap-2">
-            {/* LEFT SIDE: Info */}
             <div className="flex items-center flex-wrap gap-3 text-xs font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
-                
-                {/* ID Widget (Small) */}
                 <IdentityWidget userId={message.senderId} t={t} size="small" compact />
-
-                {/* Separator */}
                 <span className="opacity-30">//</span>
-
-                {/* Date & Time */}
                 <span className="font-mono whitespace-nowrap">
                     {dateString} {timeString}
                 </span>
 
-                {/* "YOU" Badge */}
                 {isOwnMessage && (
                     <>
                         <span className="opacity-30">//</span>
@@ -158,7 +157,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </>
                 )}
 
-                {/* "ADMIN" Badge */}
                 {message.isAdmin && (
                     <>
                         <span className="opacity-30">//</span>
@@ -168,7 +166,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </>
                 )}
 
-                {/* "Replying To" Indicator (Shows Parent Hash) */}
                 {parentSequenceNumber !== undefined && (
                     <>
                         <span className="opacity-30 hidden sm:inline">//</span>
@@ -186,9 +183,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 )}
             </div>
 
-            {/* RIGHT SIDE: Controls (Admin + Standard) */}
             <div className="flex items-center gap-4">
-                {/* ADMIN BUTTONS */}
                 {isAdmin && (
                     <div className="flex gap-2">
                         <button
@@ -208,7 +203,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </div>
                 )}
 
-                {/* Desktop Actions (Hover) */}
                 <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button 
                         onClick={handleReplyAction}
@@ -247,16 +241,57 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
             </div>
         )}
 
-        {/* 3. CONTENT SECTION */}
-        <div className="w-full">
-          <p className="text-black dark:text-white text-lg font-medium leading-snug break-words whitespace-pre-wrap">
+        {/* 3. CONTENT SECTION (Regular font weight) */}
+        <div className="w-full relative">
+          <p className="text-black dark:text-white text-lg font-normal leading-snug break-words whitespace-pre-wrap">
             {renderContent(message.content)}
           </p>
+        </div>
+
+        {/* 4. FOOTER: VOTING (Bottom Right) */}
+        <div className="absolute bottom-6 right-6 flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+             {/* Upvote */}
+             <button 
+                onClick={(e) => handleVoteAction(e, 'up')}
+                className={`transition-transform active:scale-90 ${
+                    userVote === 1 
+                    ? 'text-black dark:text-white' 
+                    : 'text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white'
+                }`}
+                title="Upvote"
+             >
+                {/* Reddit Style Block Arrow Up */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6" fill={userVote === 1 ? "currentColor" : "none"} stroke={userVote === 1 ? "none" : "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 4L3 13h6v7h6v-7h6z" />
+                </svg>
+             </button>
+
+             {/* Score */}
+             <span className="text-sm font-bold font-mono min-w-[1ch] text-center text-black dark:text-white">
+                {score}
+             </span>
+
+             {/* Downvote */}
+             <button 
+                onClick={(e) => handleVoteAction(e, 'down')}
+                className={`transition-transform active:scale-90 ${
+                    userVote === -1 
+                    ? 'text-black dark:text-white' 
+                    : 'text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white'
+                }`}
+                title="Downvote"
+             >
+                {/* Reddit Style Block Arrow Down */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6" fill={userVote === -1 ? "currentColor" : "none"} stroke={userVote === -1 ? "none" : "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20l9-9h-6V4H9v7H3z" />
+                </svg>
+             </button>
         </div>
 
         {/* Mobile Menu */}
         {showMobileMenu && (
            <div className="absolute inset-0 z-20 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center gap-8 animate-fade-in clip-corner">
+              {/* Mobile menu content omitted for brevity - same as before */}
               <button onClick={handleReplyAction} className="flex flex-col items-center gap-2 p-4">
                  <div className="w-14 h-14 rounded-full border-2 border-black dark:border-white flex items-center justify-center bg-black text-white dark:bg-white dark:text-black shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

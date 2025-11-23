@@ -69,7 +69,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   return (
     <div 
-      className={`fixed bottom-0 left-0 w-full z-50 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#050505]/95 backdrop-blur-md pb-safe ${
+      className={`fixed bottom-0 left-0 w-full z-50 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#111111]/95 backdrop-blur-md pb-safe ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
@@ -141,7 +141,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
               />
               
               {/* Character Counter / Tags */}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#050505] to-transparent">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#111111] to-transparent">
                   {detectedTags.length > 0 ? (
                      <div className="flex gap-1">
                         {detectedTags.slice(0, 2).map((tag, i) => (

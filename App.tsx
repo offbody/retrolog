@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { InputForm } from './components/InputForm';
 import { MessageList } from './components/MessageList';
@@ -20,7 +19,7 @@ import { auth } from './firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const App: React.FC = () => {
-  const { messages, addMessage, deleteMessage, blockUser, userId } = useMessages();
+  const { messages, addMessage, deleteMessage, blockUser, toggleVote, userId } = useMessages();
   const [searchQuery, setSearchQuery] = useState('');
   const [showStickyInput, setShowStickyInput] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -210,7 +209,7 @@ const App: React.FC = () => {
         t={t}
       />
       
-      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#050505] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#111111] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <div className="w-full max-w-[1600px] mx-auto p-6 sm:p-12">
           
           <header className="mb-12 w-full">
@@ -318,6 +317,7 @@ const App: React.FC = () => {
                   onFlashMessage={handleFlashMessage}
                   onDeleteMessage={deleteMessage}
                   onBlockUser={blockUser}
+                  onVote={toggleVote}
                   highlightedMessageId={highlightedMessageId}
                   isAdmin={isAdmin}
                   t={t}

@@ -6,6 +6,7 @@ import {
   collection, 
   addDoc, 
   deleteDoc,
+  updateDoc,
   doc,
   onSnapshot, 
   query, 
@@ -77,15 +78,12 @@ export const useMessages = () => {
 
     try {
       // OPTIMISTIC UPDATE (Client-side)
-      // We don't wait for server calculation to avoid delay. 
-      // We use the current max sequence + 1.
       let nextSequence = 1;
       if (messages.length > 0) {
           const maxSeq = Math.max(...messages.map(m => m.sequenceNumber || 0));
           nextSequence = maxSeq + 1;
       }
       
-      // Check if user is logged in as admin
       const isUserAdmin = !!auth.currentUser;
 
       // Construct Message
@@ -96,13 +94,10 @@ export const useMessages = () => {
         senderId: userId,
         parentId: parentId || null,
         tags: uniqueTags,
-        isAdmin: isUserAdmin
+        isAdmin: isUserAdmin,
+        votes: {} // Initialize empty votes
       };
       
-      // Optimistic render could be done here, but Firestore is fast enough with this fix.
-      // The main lag was caused by the `getDocs` call we removed.
-
-      // Write to Firebase
       await addDoc(collection(db, 'messages'), newMessage);
 
     } catch (e) {
@@ -131,6 +126,36 @@ export const useMessages = () => {
       }
   }, []);
 
+  // 7. Voting Function
+  const toggleVote = useCallback(async (messageId: string, voteType: 'up' | 'down') => {
+    if (!userId) return;
+
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    const currentVotes = message.votes || {};
+    const previousVote = currentVotes[userId] || 0;
+    const newVoteValue = voteType === 'up' ? 1 : -1;
+
+    let updatedVotes = { ...currentVotes };
+
+    if (previousVote === newVoteValue) {
+        // Remove vote if clicking the same button
+        delete updatedVotes[userId];
+    } else {
+        // Change or add vote
+        updatedVotes[userId] = newVoteValue;
+    }
+
+    try {
+        await updateDoc(doc(db, 'messages', messageId), {
+            votes: updatedVotes
+        });
+    } catch (e) {
+        console.error("Error updating vote:", e);
+    }
+  }, [userId, messages]);
+
   // Filter out messages from banned users
   const visibleMessages = messages.filter(msg => !bannedUserIds.has(msg.senderId));
 
@@ -139,6 +164,7 @@ export const useMessages = () => {
     addMessage,
     deleteMessage,
     blockUser,
+    toggleVote,
     userId
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Translations } from '../types';
 import { auth } from '../firebaseConfig';
@@ -34,7 +33,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, t }) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-[#050505] text-black dark:text-white font-mono p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-[#111111] text-black dark:text-white font-mono p-4">
       <div className="w-full max-w-md flex flex-col gap-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold uppercase tracking-widest mb-2">

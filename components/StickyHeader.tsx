@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Translations } from '../types';
 import { IdentityWidget } from './IdentityWidget';
@@ -14,7 +13,7 @@ interface StickyHeaderProps {
 export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, searchQuery, onSearchChange, userId, t }) => {
   return (
     <div 
-      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#050505]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
+      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#111111]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >

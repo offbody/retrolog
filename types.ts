@@ -8,6 +8,7 @@ export interface Message {
   parentId?: string | null; // Allow null for Firestore compatibility
   tags: string[];
   isAdmin?: boolean;
+  votes?: Record<string, number>; // Map of userId -> vote value (1 or -1)
 }
 
 export type Language = 'ru' | 'en';
@@ -44,6 +45,7 @@ export interface Translations {
   tags_placeholder: string;
   sort_newest: string;
   sort_oldest: string;
+  sort_best: string;
   preloader_title: string;
   preloader_subtitle: string;
   next_msg_label: string;
@@ -72,6 +74,7 @@ export interface MessageListProps {
   onFlashMessage: (id: string) => void;
   onDeleteMessage: (id: string) => void;
   onBlockUser: (senderId: string) => void;
+  onVote: (messageId: string, voteType: 'up' | 'down') => void;
   highlightedMessageId: string | null;
   allMessagesRaw?: Message[]; // Needed to lookup parent sequence numbers
   isAdmin: boolean;
@@ -87,6 +90,7 @@ export interface MessageItemProps {
   onFlashMessage: (id: string) => void;
   onDeleteMessage: (id: string) => void;
   onBlockUser: (senderId: string) => void;
+  onVote: (messageId: string, voteType: 'up' | 'down') => void;
   parentSequenceNumber?: number; // Kept for fallback
   parentSenderId?: string; // For "Reply to #HASH"
   isFlashHighlighted?: boolean;

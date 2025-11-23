@@ -1,13 +1,13 @@
 
 import React, { useState, useMemo } from 'react';
-import { MessageListProps } from '../types';
+import { MessageListProps, Message } from '../types';
 import { MessageItem } from './MessageItem';
 import { LAST_READ_KEY } from '../constants';
 
 type TabType = 'all' | 'mine';
-type SortOrder = 'newest' | 'oldest';
+type SortOrder = 'newest' | 'oldest' | 'best';
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, highlightedMessageId, allMessagesRaw, isAdmin, t, locale }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId, onReply, onTagClick, onFlashMessage, onDeleteMessage, onBlockUser, onVote, highlightedMessageId, allMessagesRaw, isAdmin, t, locale }) => {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('oldest');
 
@@ -49,8 +49,23 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
     return result.sort((a, b) => {
         if (sortOrder === 'newest') {
             return b.timestamp - a.timestamp;
-        } else {
+        } else if (sortOrder === 'oldest') {
             return a.timestamp - b.timestamp;
+        } else {
+            // BEST (Sort by score)
+            const getScore = (msg: Message) => {
+                const votes = msg.votes || {};
+                return (Object.values(votes) as number[]).reduce((acc, curr) => acc + curr, 0);
+            };
+            
+            const scoreA = getScore(a);
+            const scoreB = getScore(b);
+            
+            if (scoreB !== scoreA) {
+                return scoreB - scoreA; // Higher score first
+            }
+            // If scores equal, newest first
+            return b.timestamp - a.timestamp;
         }
     });
   }, [messages, activeTab, currentUserId, allMessagesRaw, sortOrder]);
@@ -116,19 +131,26 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
             </button>
          </div>
 
-         <div className="flex items-center gap-3 pb-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
+         <div className="flex flex-wrap items-center gap-2 pb-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
+            <button 
+                onClick={() => setSortOrder('oldest')}
+                className={`transition-colors whitespace-nowrap ${sortOrder === 'oldest' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
+            >
+                {t.sort_oldest}
+            </button>
+            <span className="opacity-30 text-black dark:text-white">//</span>
             <button 
                 onClick={() => setSortOrder('newest')}
-                className={`transition-colors ${sortOrder === 'newest' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
+                className={`transition-colors whitespace-nowrap ${sortOrder === 'newest' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
             >
                 {t.sort_newest}
             </button>
             <span className="opacity-30 text-black dark:text-white">//</span>
             <button 
-                onClick={() => setSortOrder('oldest')}
-                className={`transition-colors ${sortOrder === 'oldest' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
+                onClick={() => setSortOrder('best')}
+                className={`transition-colors whitespace-nowrap ${sortOrder === 'best' ? 'text-black dark:text-white' : 'text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white'}`}
             >
-                {t.sort_oldest}
+                {t.sort_best}
             </button>
          </div>
       </div>
@@ -153,6 +175,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
                         onFlashMessage={onFlashMessage}
                         onDeleteMessage={onDeleteMessage}
                         onBlockUser={onBlockUser}
+                        onVote={onVote}
                         parentSequenceNumber={seq}
                         parentSenderId={senderId}
                         isFlashHighlighted={highlightedMessageId === msg.id}
