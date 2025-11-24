@@ -33,18 +33,7 @@ const App: React.FC = () => {
   
   // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [isSearchMode, setIsSearchMode] = useState(false); // Mobile Search Mode
-
-  // Track Screen Size - Breakpoint set to 768px (md) to include landscape phones
-  useEffect(() => {
-      const checkMobile = () => {
-          setIsMobile(window.innerWidth < 768);
-      };
-      checkMobile();
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-  }, []);
   
   // Admin Logic (Secure)
   const [isAdmin, setIsAdmin] = useState(false);

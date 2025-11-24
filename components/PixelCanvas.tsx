@@ -52,16 +52,59 @@ export const PixelCanvas: React.FC = () => {
         }
     };
 
-    // Generate Random City Skyline (Static Background)
+    // Generate Random City Skyline (Static Background) - CENTERED
     const initSkyline = (w: number, h: number) => {
         skyline = [];
-        let x = 0;
-        while(x < w) {
-            const buildingW = 5 + Math.random() * 15;
-            const buildingH = 10 + Math.random() * 20;
-            skyline.push({ x, w: buildingW, h: buildingH });
-            x += buildingW + (Math.random() * 5); // Gap between buildings
+        
+        // Margins in logical pixels
+        const margin = 8; // Equal margin all around (Top, Bottom, Left, Right)
+        
+        // Vertical constraints
+        const maxBuildingHeight = h - (margin * 2);
+        
+        // Horizontal constraints
+        const usableWidth = w - (margin * 2);
+
+        // Temporary array to store buildings relative to group start
+        const buildings: { w: number, h: number }[] = [];
+        let currentWidth = 0;
+
+        // Generate buildings
+        while(currentWidth < usableWidth) {
+            const buildingW = 4 + Math.floor(Math.random() * 12);
+            
+            // If adding this building exceeds usable width, stop loop
+            if (currentWidth + buildingW > usableWidth) {
+                break;
+            }
+
+            // Height logic: tall buildings to fill the space
+            // Min height is 60% of max to ensure "wall" look
+            const minH = maxBuildingHeight * 0.6;
+            const buildingH = minH + Math.random() * (maxBuildingHeight - minH);
+
+            buildings.push({ w: buildingW, h: buildingH });
+            currentWidth += buildingW + 1; // +1 for 1px gap
         }
+
+        // Remove the trailing gap from the width calculation for centering
+        if (buildings.length > 0) {
+            currentWidth -= 1;
+        }
+
+        // Calculate Start X to perfectly Center the Skyline
+        // Math.floor ensures we snap to pixel grid to avoid sub-pixel blurring
+        const startX = Math.floor((w - currentWidth) / 2);
+
+        let xPointer = startX;
+        buildings.forEach(b => {
+            skyline.push({ 
+                x: xPointer, 
+                w: b.w, 
+                h: b.h 
+            });
+            xPointer += b.w + 1;
+        });
     };
 
     const resize = () => {
@@ -103,11 +146,27 @@ export const PixelCanvas: React.FC = () => {
 
     const drawCity = (w: number, h: number) => {
         const isDark = document.documentElement.classList.contains('dark');
+        
+        // 1. Draw Faint Grid (Authentic Overlay)
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+        // Draw a dot every 2 pixels to create a fine grid
+        for(let gx = 0; gx < w; gx += 2) {
+             for(let gy = 0; gy < h; gy += 2) {
+                 ctx.fillRect(gx, gy, 1, 1);
+             }
+        }
+
+        // 2. Draw Skyline
         // Very subtle gray for background city
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
         
+        const bottomMargin = 8; // Defined margin
+
         skyline.forEach(b => {
-            const by = h - 2 - b.h;
+            // Draw from bottom margin up
+            // Y position = Canvas Height - Bottom Margin - Building Height
+            const by = h - bottomMargin - b.h;
+            
             ctx.fillRect(Math.round(b.x), Math.round(by), Math.round(b.w), Math.round(b.h));
             
             // Random "windows" (static noise on buildings)
@@ -124,7 +183,7 @@ export const PixelCanvas: React.FC = () => {
     const drawFigure = (f: Figure, time: number) => {
         const isDark = document.documentElement.classList.contains('dark');
         
-        // 1. Draw Figure (Reverted to High Contrast Black/White)
+        // 1. Draw Figure (High Contrast)
         ctx.fillStyle = isDark ? '#ffffff' : '#000000';
 
         const animOffset = (f.state === 'walk' && Math.floor(time / 200) % 2 === 0) ? 1 : 0;
@@ -133,19 +192,19 @@ export const PixelCanvas: React.FC = () => {
         let px = Math.round(f.x);
         let py = Math.round(f.y);
 
-        // Height variation (Reduced base height from 6 to 5 for smaller look)
-        const h = 5 + f.variant; 
+        // Height variation (Reduced base height from 5 to 3 for ~20% smaller look)
+        const h = 3 + f.variant; 
 
-        // HEAD
+        // HEAD (Kept 3px wide for readability, but positioned lower relative to reduced body)
         const headY = py - h - 2;
         ctx.fillRect(px - 1, headY, 3, 1); // Top cap
         ctx.fillRect(px - 1, headY + 1, 3, 1); // Face
         
-        // BODY
-        drawLine(px, headY + 2, px, py - 3);
+        // BODY (Shorter)
+        drawLine(px, headY + 2, px, py - 2);
 
-        // ARMS
-        const armY = headY + 3;
+        // ARMS (Shorter)
+        const armY = headY + 2;
         if (f.state === 'walk') {
             // Swing arms
             const swing = animOffset ? 2 : -2;
@@ -153,12 +212,12 @@ export const PixelCanvas: React.FC = () => {
             drawLine(px, armY, px + (f.direction * swing), armY + 2);
         } else {
             // Idle arms down
-            drawLine(px, armY, px - 2, armY + 2);
-            drawLine(px, armY, px + 2, armY + 2);
+            drawLine(px, armY, px - 1, armY + 2);
+            drawLine(px, armY, px + 1, armY + 2);
         }
 
         // LEGS
-        const legY = py - 3;
+        const legY = py - 2;
         if (f.state === 'walk') {
             const stride = animOffset ? 2 : 0;
             drawLine(px, legY, px - 2 + stride, py);
@@ -168,7 +227,7 @@ export const PixelCanvas: React.FC = () => {
             drawLine(px, legY, px + 1, py);
         }
 
-        // 2. Draw Chat Bubble (High Contrast)
+        // 2. Draw Chat Bubble (High Contrast, Scaled Down)
         if (f.state === 'idle') {
             // Bubble visibility cycle
             const cycle = Math.floor((time + f.chatTimer) / 2000) % 3;
@@ -176,12 +235,14 @@ export const PixelCanvas: React.FC = () => {
                 // Ensure bubble is also high contrast
                 ctx.fillStyle = isDark ? '#ffffff' : '#000000';
                 
-                const bw = 11; // Wider bubble
-                const bh = 7;
+                // Reduced Bubble Size (was 11x7)
+                const bw = 9; 
+                const bh = 5;
                 
                 // Position bubble slightly to the right and above head
+                // Adjusted offset for smaller head size
                 const bx = px + 2; 
-                const by = headY - 9;
+                const by = headY - 6;
                 
                 // Outline
                 // Top
@@ -198,15 +259,15 @@ export const PixelCanvas: React.FC = () => {
 
                 // Tail (Asymmetric - bottom left step down)
                 ctx.fillRect(bx + 1, by + bh, 1, 1);
-                ctx.fillRect(bx, by + bh + 1, 1, 1);
                 
-                // Typing Dots Animation inside bubble
-                const dots = Math.floor(time / 400) % 4;
-                const dotY = by + 3;
+                // Typing Dots Animation inside bubble (Reduced count to fit)
+                const dots = Math.floor(time / 400) % 3;
+                const dotY = by + 2;
                 
+                // Dots at +2, +4, +6
                 if (dots >= 0) ctx.fillRect(bx + 2, dotY, 1, 1);
-                if (dots >= 1) ctx.fillRect(bx + 5, dotY, 1, 1);
-                if (dots >= 2) ctx.fillRect(bx + 8, dotY, 1, 1);
+                if (dots >= 1) ctx.fillRect(bx + 4, dotY, 1, 1);
+                if (dots >= 2) ctx.fillRect(bx + 6, dotY, 1, 1);
             }
         }
     };
@@ -214,7 +275,7 @@ export const PixelCanvas: React.FC = () => {
     const loop = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw Skyline first (background)
+        // Draw Skyline first (background) with Grid
         drawCity(canvas.width, canvas.height);
 
         const time = Date.now();
