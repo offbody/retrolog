@@ -484,7 +484,7 @@ const App: React.FC = () => {
             </header>
 
             {/* HERO: PIXEL CANVAS */}
-            <section className="w-full h-[100px] bg-[#f2f2f2] dark:bg-[#252525] border-b border-black/10 dark:border-white/10 relative overflow-hidden mb-4">
+            <section className="w-full h-[100px] border-b border-black/10 dark:border-white/10 relative overflow-hidden mb-4">
                 <PixelCanvas />
             </section>
           </div>

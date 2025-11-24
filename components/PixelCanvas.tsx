@@ -148,8 +148,10 @@ export const PixelCanvas: React.FC = () => {
         const isDark = document.documentElement.classList.contains('dark');
         
         // 1. Draw Faint Grid (Authentic Overlay)
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
         // Draw a dot every 2 pixels to create a fine grid
+        // Extremely subtle opacity (0.02)
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)';
+
         for(let gx = 0; gx < w; gx += 2) {
              for(let gy = 0; gy < h; gy += 2) {
                  ctx.fillRect(gx, gy, 1, 1);
@@ -157,8 +159,10 @@ export const PixelCanvas: React.FC = () => {
         }
 
         // 2. Draw Skyline
-        // Very subtle gray for background city
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+        // Semi-transparent blocks to let the background color show through but darker/lighter
+        // Dark Mode: White buildings (faint)
+        // Light Mode: Black buildings (faint)
+        ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
         
         const bottomMargin = 4; // Defined margin (Reduced to 4px)
 
@@ -172,10 +176,11 @@ export const PixelCanvas: React.FC = () => {
             // Random "windows" (static noise on buildings)
             if (Math.random() > 0.99) {
                  // Tiny flicker
-                 ctx.fillStyle = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+                 const prevFill = ctx.fillStyle;
+                 ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)';
                  ctx.fillRect(Math.round(b.x + 2), Math.round(by + 2), 1, 1);
                  // Restore fill style
-                 ctx.fillStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+                 ctx.fillStyle = prevFill;
             }
         });
     };
@@ -184,7 +189,9 @@ export const PixelCanvas: React.FC = () => {
         const isDark = document.documentElement.classList.contains('dark');
         
         // 1. Draw Figure (High Contrast)
-        ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+        // Light Mode: Black
+        // Dark Mode: White
+        ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
 
         const animOffset = (f.state === 'walk' && Math.floor(time / 200) % 2 === 0) ? 1 : 0;
         
@@ -232,8 +239,8 @@ export const PixelCanvas: React.FC = () => {
             // Bubble visibility cycle
             const cycle = Math.floor((time + f.chatTimer) / 2000) % 3;
             if (cycle === 0) {
-                // Ensure bubble is also high contrast
-                ctx.fillStyle = isDark ? '#ffffff' : '#000000';
+                // Ensure bubble uses same color as figure
+                ctx.fillStyle = isDark ? '#FFFFFF' : '#000000';
                 
                 // Reduced Bubble Size (was 11x7)
                 const bw = 9; 
