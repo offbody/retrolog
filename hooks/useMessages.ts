@@ -85,6 +85,7 @@ export const useMessages = () => {
           await signInWithPopup(auth, googleProvider);
       } catch (error) {
           console.error("Login failed", error);
+          throw error; // Rethrow to allow UI to handle state
       }
   };
 

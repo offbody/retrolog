@@ -5,7 +5,7 @@ import { LoginModal } from './LoginModal';
 
 interface AuthWidgetProps {
   user: UserProfile | null;
-  onLogin: () => void;
+  onLogin: () => Promise<void>;
   onLogout: () => void;
   t: Translations;
   compact?: boolean;
@@ -19,9 +19,17 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
       setShowLoginModal(true);
   };
 
-  const handleGoogleLogin = () => {
-      setShowLoginModal(false);
-      onLogin();
+  const handleGoogleLogin = async () => {
+      // We pass this handler to the modal. 
+      // It awaits the login process before closing the modal 
+      // to ensure the popup isn't interrupted by component unmounting.
+      try {
+          await onLogin();
+          setShowLoginModal(false);
+      } catch (error) {
+          // Error is logged in hook, we can keep modal open or show error toast here
+          console.error("AuthWidget: Login failed", error);
+      }
   };
 
   if (!user) {

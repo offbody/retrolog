@@ -11,7 +11,7 @@ import { doc, setDoc } from 'firebase/firestore';
 
 interface LoginModalProps {
   onClose: () => void;
-  onGoogleLogin: () => void;
+  onGoogleLogin: () => Promise<void>;
   t: Translations;
 }
 
@@ -46,6 +46,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
       }
   };
 
+  const handleGoogleClick = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+          await onGoogleLogin();
+          // Modal closes in parent component on success
+      } catch (e) {
+          setIsLoading(false);
+          // Error logged in parent
+      }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
@@ -77,8 +89,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
               });
 
               // 2. Create Firestore Document Immediately
-              // We do this manually here to ensure the username is synced correctly 
-              // before the global listener might try to create an empty one.
               const newUserProfile: UserProfile = {
                   uid: user.uid,
                   displayName: username,
@@ -113,6 +123,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
             <button 
                 onClick={onClose}
                 className="hover:opacity-50 transition-opacity font-bold"
+                disabled={isLoading}
             >
                 [ESC]
             </button>
@@ -129,9 +140,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
             <div className="flex flex-col gap-3">
                 {/* Google Button */}
                 <button 
-                    onClick={onGoogleLogin}
+                    type="button"
+                    onClick={handleGoogleClick}
                     disabled={isLoading}
-                    className="group relative w-full h-14 bg-transparent border border-black dark:border-white flex items-center justify-center gap-4 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:translate-y-[2px] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="group relative w-full h-14 bg-transparent border border-black dark:border-white flex items-center justify-center gap-4 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:translate-y-[2px] disabled:opacity-50 disabled:cursor-wait"
                 >
                     <div className="w-5 h-5 bg-white p-0.5 rounded-sm flex items-center justify-center">
                          <svg viewBox="0 0 24 24" className="w-full h-full">
@@ -141,12 +153,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                         </svg>
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-widest">{t.auth_google_btn}</span>
-                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-[8px]">→</div>
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                        {isLoading ? 'CONNECTING...' : t.auth_google_btn}
+                    </span>
+                    {!isLoading && <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-[8px]">→</div>}
                 </button>
 
                 {/* Apple Button (Mock) */}
-                <button className="w-full h-12 opacity-50 bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-dashed border-black dark:border-white flex items-center justify-center gap-3 cursor-not-allowed" disabled>
+                <button 
+                    type="button"
+                    className="w-full h-12 opacity-50 bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-dashed border-black dark:border-white flex items-center justify-center gap-3 cursor-not-allowed" 
+                    disabled
+                >
                     <svg className="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.79C2.79 14.21 3.51 7.6 9.02 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.48-1.23 3.64-1.24.92.02 3.6.26 4.61 2.31-.08.05-2.8 1.66-2.79 4.94.01 3.94 3.48 5.24 3.5 5.27-.03.1-.55 1.94-1.81 3.95zm-4.14-14.24c.66-1.23.31-2.81.31-2.81s-1.39.12-2.85 1.74c-1.09 1.19-1.28 2.92-1.28 2.92s1.53.14 3.82-1.85z"/>
                     </svg>
@@ -236,6 +254,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                     {mode === 'login' ? t.auth_no_account : t.auth_has_account}
                 </span>
                 <button 
+                    type="button"
                     onClick={toggleMode}
                     className="text-black dark:text-white border-b border-black dark:border-white pb-0.5 hover:opacity-50 transition-opacity"
                     disabled={isLoading}

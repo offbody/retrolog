@@ -19,4 +19,8 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
 export const googleProvider = new GoogleAuthProvider();
+// Explicitly add scopes to avoid "invalid action" or missing permission errors
+googleProvider.addScope('profile');
+googleProvider.addScope('email');
