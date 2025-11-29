@@ -38,41 +38,57 @@ export const useMessages = () => {
   // 1. Authentication & Profile Sync
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
+        setIsAuthLoading(true);
+        
         if (firebaseUser) {
-            // Logged in
-            setUserId(firebaseUser.uid);
+            // --- LOGGED IN STATE ---
+            const uid = firebaseUser.uid;
+            setUserId(uid);
             
-            // Check/Create User Profile in Firestore
-            const userRef = doc(db, 'users', firebaseUser.uid);
-            const userSnap = await getDoc(userRef);
+            // Prepare Fallback Profile (Use Auth data immediately)
+            // This ensures UI updates even if Firestore fails
+            let fallbackName = firebaseUser.displayName;
+            const isGoogle = firebaseUser.providerData.some(p => p.providerId === 'google.com');
 
-            if (!userSnap.exists()) {
-                // New User
-                let displayName = firebaseUser.displayName;
+            // Generate name if missing or if it's Google (optional style choice)
+            if (isGoogle && !fallbackName) {
+                fallbackName = generateCyberpunkName();
+            }
+            if (!fallbackName && firebaseUser.email) {
+                fallbackName = firebaseUser.email.split('@')[0];
+            }
 
-                // Check provider to see if it's Google
-                const isGoogle = firebaseUser.providerData.some(p => p.providerId === 'google.com');
+            const fallbackProfile: UserProfile = {
+                uid: uid,
+                displayName: fallbackName || 'ANON_USER',
+                photoURL: firebaseUser.photoURL,
+                email: firebaseUser.email,
+                karma: 0,
+                createdAt: Date.now()
+            };
 
-                // If Google or no name provided, generate a cyberpunk pseudonym
-                if (isGoogle || !displayName) {
-                    displayName = generateCyberpunkName();
+            try {
+                // Try to fetch existing profile from Firestore
+                const userRef = doc(db, 'users', uid);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists()) {
+                    // Profile exists in DB -> Use it
+                    setUserProfile(userSnap.data() as UserProfile);
+                } else {
+                    // Profile does NOT exist -> Create it
+                    // We try to write to DB, but even if this fails, we set local state below
+                    await setDoc(userRef, fallbackProfile);
+                    setUserProfile(fallbackProfile);
                 }
-
-                const newProfile: UserProfile = {
-                    uid: firebaseUser.uid,
-                    displayName: displayName,
-                    photoURL: firebaseUser.photoURL,
-                    email: firebaseUser.email,
-                    karma: 0,
-                    createdAt: Date.now()
-                };
-                await setDoc(userRef, newProfile);
-                setUserProfile(newProfile);
-            } else {
-                setUserProfile(userSnap.data() as UserProfile);
+            } catch (error) {
+                console.warn("Firestore access failed (likely permissions). Using fallback profile.", error);
+                // CRITICAL FALLBACK:
+                // Even if DB fails, log the user in VISUALLY using the data we have.
+                setUserProfile(fallbackProfile);
             }
         } else {
-            // Guest Mode (Legacy Anonymous)
+            // --- GUEST STATE ---
             let storedUserId = localStorage.getItem(USER_ID_KEY);
             if (!storedUserId) {
                 storedUserId = crypto.randomUUID();
@@ -81,6 +97,7 @@ export const useMessages = () => {
             setUserId(storedUserId);
             setUserProfile(null);
         }
+        
         setIsAuthLoading(false);
     });
 
@@ -91,10 +108,13 @@ export const useMessages = () => {
   useEffect(() => {
       if (!userId || !userProfile) return;
       
+      // Wrap in try-catch logic (onSnapshot throws via error callback)
       const unsubscribeProfile = onSnapshot(doc(db, 'users', userId), (doc) => {
           if (doc.exists()) {
               setUserProfile(doc.data() as UserProfile);
           }
+      }, (error) => {
+          console.warn("Realtime profile sync failed:", error);
       });
 
       return () => unsubscribeProfile();
@@ -120,6 +140,8 @@ export const useMessages = () => {
       const unsubscribeBans = onSnapshot(collection(db, 'banned_users'), (snapshot) => {
           const bans = new Set(snapshot.docs.map(doc => doc.data().userId));
           setBannedUserIds(bans);
+      }, (error) => {
+           console.warn("Banned users sync failed:", error);
       });
       return () => unsubscribeBans();
   }, []);
@@ -226,8 +248,6 @@ export const useMessages = () => {
         await updateDoc(doc(db, 'messages', messageId), {
             votes: updatedVotes
         });
-        
-        // TODO: Karma logic for the author would go here in a Cloud Function
     } catch (e) {
         console.error("Error voting:", e);
     }
