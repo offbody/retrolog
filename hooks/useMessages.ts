@@ -189,21 +189,34 @@ export const useMessages = () => {
       // SECURITY FIX: Strict check for admin email only.
       const isAdmin = userProfile?.email === 'offbody@gmail.com';
 
-      const newMessage: Omit<Message, 'id'> = {
-        title: title.trim() || undefined,
+      // NOTE: Firestore throws "invalid-argument" if any field is undefined.
+      // We must construct the object carefully, omitting undefined fields or using null.
+      
+      const newMessageData: any = {
         content: content.trim(),
         timestamp: Date.now(),
         sequenceNumber: nextSequence,
         senderId: userId,
-        senderName: userProfile?.displayName || undefined,
-        senderAvatar: userProfile?.photoURL || undefined,
-        parentId: parentId || null,
+        parentId: parentId || null, // null is valid
         tags: uniqueTags,
         isAdmin: isAdmin,
         votes: {} 
       };
+
+      // Only add optional fields if they have values to avoid "undefined" error
+      if (title && title.trim()) {
+          newMessageData.title = title.trim();
+      }
       
-      await addDoc(collection(db, 'messages'), newMessage);
+      if (userProfile?.displayName) {
+          newMessageData.senderName = userProfile.displayName;
+      }
+      
+      if (userProfile?.photoURL) {
+          newMessageData.senderAvatar = userProfile.photoURL;
+      }
+
+      await addDoc(collection(db, 'messages'), newMessageData);
 
     } catch (e) {
       console.error("Error adding document: ", e);
