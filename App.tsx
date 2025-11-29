@@ -7,7 +7,7 @@ import { StickyHeader } from './components/StickyHeader';
 import { ThemeToggle } from './components/ThemeToggle';
 import { LanguageToggle } from './components/LanguageToggle';
 import { Preloader } from './components/Preloader';
-import { IdentityWidget } from './components/IdentityWidget';
+import { AuthWidget } from './components/AuthWidget';
 import { PixelCanvas } from './components/PixelCanvas';
 import { ScrollToTop } from './components/ScrollToTop';
 import { AdminLogin } from './components/AdminLogin';
@@ -19,38 +19,29 @@ import { auth } from './firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 const App: React.FC = () => {
-  const { messages, addMessage, deleteMessage, blockUser, toggleVote, userId } = useMessages();
+  const { messages, addMessage, deleteMessage, blockUser, toggleVote, userId, userProfile, loginWithGoogle, logout, isAuthLoading } = useMessages();
   
-  // Search & Tag States (Independent)
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-
-  // Sticky Input is always visible now
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  
-  // Scroll State for Sticky Header
   const [showStickyHeader, setShowStickyHeader] = useState(false);
-  
-  // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchMode, setIsSearchMode] = useState(false); // Mobile Search Mode
+  const [isSearchMode, setIsSearchMode] = useState(false); 
   
-  // Admin Logic (Secure)
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  // Check for God Mode URL on mount
   useEffect(() => {
     if (window.location.pathname === '/godmode') {
       setShowAdminLogin(true);
     }
   }, []);
 
-  // Monitor Firebase Auth State
   useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-          if (user) {
+          // Simple email check for admin for now
+          if (user && user.email && (user.email.includes('admin') || user.email === 'offbody@gmail.com')) {
               setIsAdmin(true);
           } else {
               setIsAdmin(false);
@@ -73,11 +64,8 @@ const App: React.FC = () => {
       alert('LOGGED OUT FROM GOD MODE');
   };
 
-  // Cooldown Logic
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
   const lastSentTime = useRef<number>(0);
-
-  // Highlight Logic
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
   const handleFlashMessage = (id: string) => {
@@ -87,7 +75,6 @@ const App: React.FC = () => {
     }, 2000);
   };
   
-  // Loading State for Preloader
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -97,7 +84,6 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Cooldown Timer Effect
   useEffect(() => {
     if (cooldownRemaining > 0) {
         const timer = setInterval(() => {
@@ -110,7 +96,6 @@ const App: React.FC = () => {
     }
   }, [cooldownRemaining]);
   
-  // Language State
   const [language, setLanguage] = useState<Language>('ru'); 
   const t = TRANSLATIONS[language];
   const locale = language === 'ru' ? 'ru-RU' : 'en-US';
@@ -119,7 +104,6 @@ const App: React.FC = () => {
     setLanguage(prev => prev === 'ru' ? 'en' : 'ru');
   };
   
-  // Theme State with Persistence
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
         const savedTheme = localStorage.getItem('anon_log_theme');
@@ -144,19 +128,16 @@ const App: React.FC = () => {
   
   const topSectionRef = useRef<HTMLDivElement>(null);
 
-  // Sticky Header Scroll Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Show sticky header when the top section (header + canvas) scrolls out of view
-        // But only if we scrolled DOWN (boundingClientRect.top < 0)
         const isScrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
         setShowStickyHeader(isScrolledPast);
       },
       {
         root: null,
-        threshold: 0, // Trigger as soon as even 1px is out
-        rootMargin: "-100px 0px 0px 0px" // Add some buffer
+        threshold: 0, 
+        rootMargin: "-100px 0px 0px 0px" 
       }
     );
 
@@ -169,9 +150,7 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Centralized Filter Logic
   const filteredMessages = useMemo(() => {
-    // 1. Tag Filter Priority
     if (selectedTag) {
         const targetTag = selectedTag.toLowerCase();
         return messages.filter(msg => 
@@ -179,17 +158,17 @@ const App: React.FC = () => {
         );
     }
 
-    // 2. Search Query Filter
     if (!searchQuery.trim()) return messages;
 
     const query = searchQuery.toLowerCase();
     return messages.filter((msg) => {
       const contentMatch = msg.content.toLowerCase().includes(query);
+      const titleMatch = msg.title?.toLowerCase().includes(query) || false;
       const idString = msg.sequenceNumber.toString();
       const idMatch = idString.includes(query);
       const tagMatch = (msg.tags || []).some(tag => tag.toLowerCase().includes(query));
       
-      return contentMatch || idMatch || tagMatch;
+      return contentMatch || titleMatch || idMatch || tagMatch;
     });
   }, [messages, searchQuery, selectedTag]);
 
@@ -217,35 +196,33 @@ const App: React.FC = () => {
           .map(([tag, count]) => ({ tag, count }));
   }, [messages]);
 
-  const handleSendMessage = (content: string, manualTags?: string[]) => {
+  const handleSendMessage = (content: string, title: string, manualTags?: string[]) => {
       const now = Date.now();
       const timeSinceLast = now - lastSentTime.current;
       
-      if (timeSinceLast < 15000) {
+      if (timeSinceLast < 5000) { // Reduced cooldown
           return;
       }
 
-      addMessage(content, replyingTo?.id, manualTags);
+      addMessage(content, title, replyingTo?.id, manualTags);
       lastSentTime.current = now;
-      setCooldownRemaining(15);
+      setCooldownRemaining(5);
   };
 
-  // Tag Click Handler: Sets Tag, Clears Search
   const handleTagClick = (tag: string) => {
       if (selectedTag === tag) {
-          setSelectedTag(null); // Toggle off
+          setSelectedTag(null); 
       } else {
           setSelectedTag(tag);
-          setSearchQuery(''); // Clear independent search
+          setSearchQuery(''); 
           window.scrollTo({ top: 0, behavior: 'smooth' });
       }
   };
 
-  // Search Change Handler: Sets Search, Clears Tag
   const handleSearchChange = (val: string) => {
       setSearchQuery(val);
       if (val.trim().length > 0) {
-          setSelectedTag(null); // Reset tag selection if typing
+          setSelectedTag(null); 
       }
   };
 
@@ -257,7 +234,6 @@ const App: React.FC = () => {
     <>
       <Preloader isVisible={isLoading} t={t} />
       
-      {/* Sticky Header */}
       <StickyHeader 
         isVisible={showStickyHeader} 
         searchQuery={searchQuery}
@@ -266,7 +242,6 @@ const App: React.FC = () => {
         t={t}
       />
       
-      {/* MOBILE BURGER MENU OVERLAY */}
       {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[60] bg-white dark:bg-[#121212] p-6 flex flex-col font-mono">
               <div className="flex justify-end mb-8">
@@ -281,17 +256,15 @@ const App: React.FC = () => {
               </div>
               
               <div className="flex flex-col gap-6 items-center justify-center flex-1 w-full max-w-sm mx-auto">
-                  {/* 1. Identity Block */}
                   <div className="w-full border border-dashed border-black/30 dark:border-white/30 p-6 flex flex-col items-center gap-4">
                       <span className="text-xs font-bold uppercase tracking-widest opacity-50">{t.system_name}</span>
                       <div className="scale-125">
-                        <IdentityWidget userId={userId} t={t} />
+                         <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                       </div>
                   </div>
 
                   <div className="w-full h-[1px] bg-black/10 dark:bg-white/10 my-2"></div>
                   
-                  {/* 2. Language Toggle */}
                   <button 
                       onClick={toggleLanguage}
                       className="w-full border border-black dark:border-white p-4 flex items-center justify-center gap-4 text-lg font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
@@ -318,7 +291,6 @@ const App: React.FC = () => {
       <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#121212] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <div className="w-full max-w-[1600px] mx-auto px-6 sm:p-12 pt-6">
           
-          {/* WRAP HEADER + CANVAS IN A REF FOR SCROLL TRACKING */}
           <div ref={topSectionRef}>
             <header className="mb-2 md:mb-8 lg:mb-8 w-full">
                 {/* DESKTOP */}
@@ -334,7 +306,7 @@ const App: React.FC = () => {
                                 <input 
                                     type="text" 
                                     value={searchQuery}
-                                    onChange={(e) => handleSearchChange(e.target.value)} // Use new handler
+                                    onChange={(e) => handleSearchChange(e.target.value)} 
                                     placeholder={t.search_placeholder}
                                     className="w-full bg-transparent border-b border-black/20 dark:border-white/20 py-1 text-sm font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
                                 />
@@ -363,7 +335,7 @@ const App: React.FC = () => {
                         )}
                     </div>
                     <div className="flex-1 flex justify-end items-center gap-8">
-                    <IdentityWidget userId={userId} t={t} />
+                    <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                     <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
                     </div>
                 </div>
@@ -372,7 +344,7 @@ const App: React.FC = () => {
                 <div className="hidden md:flex lg:hidden flex-col gap-6">
                     <div className="flex items-center justify-between w-full">
                         <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
-                        <IdentityWidget userId={userId} t={t} />
+                        <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                         <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
                     </div>
                     <div className="flex justify-center items-center gap-2 w-full">
@@ -382,11 +354,6 @@ const App: React.FC = () => {
                         >
                         {t.system_name}
                         </a>
-                        {isAdmin && (
-                            <button onClick={handleAdminLogout} className="text-xs font-bold bg-red-500 text-white px-2 py-1 hover:bg-red-600">
-                                {t.logout_btn}
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -401,7 +368,7 @@ const App: React.FC = () => {
                                 autoFocus
                                 type="text" 
                                 value={searchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)} // Use new handler
+                                onChange={(e) => handleSearchChange(e.target.value)} 
                                 placeholder={t.search_placeholder_short}
                                 className="flex-1 bg-transparent text-base font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
                             />
@@ -423,7 +390,7 @@ const App: React.FC = () => {
                         <div className="relative w-full h-10 flex sm:grid sm:grid-cols-3 items-center justify-between">
                             {/* Left: Identity */}
                             <div className="flex items-center justify-start">
-                                <IdentityWidget userId={userId} t={t} compact={true} />
+                                <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} compact />
                             </div>
                             
                             {/* Center: Logo (Landscape only) */}
@@ -443,15 +410,6 @@ const App: React.FC = () => {
                                     className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-black dark:text-white hover:opacity-70 transition-opacity"
                                 >
                                     <span>[{isDark ? t.theme_dark : t.theme_light}]</span>
-                                    {isDark ? (
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                                        </svg>
-                                    ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                                        </svg>
-                                    )}
                                 </button>
 
                                 <button onClick={() => setIsSearchMode(true)} className="p-1">
@@ -471,7 +429,6 @@ const App: React.FC = () => {
                         </div>
                     )}
                     
-                    {/* Logo for Mobile Portrait only (< sm) */}
                     <div className="sm:hidden flex justify-center items-center w-full mt-2">
                         <a 
                         href="/"
@@ -483,14 +440,12 @@ const App: React.FC = () => {
                 </div>
             </header>
 
-            {/* HERO: PIXEL CANVAS */}
             <section className="w-full h-[100px] border-b border-black/10 dark:border-white/10 relative overflow-hidden mb-4">
                 <PixelCanvas />
             </section>
           </div>
 
           <main className="w-full max-w-[1600px] mx-auto">
-              {/* Pass selectedTag as activeTag to PopularTags */}
               <PopularTags tags={popularTags} onTagClick={handleTagClick} activeTag={selectedTag || ''} t={t} />
               
               <div className="w-full hidden md:block lg:hidden mb-8">
@@ -529,6 +484,7 @@ const App: React.FC = () => {
           onCancelReply={() => setReplyingTo(null)}
           cooldownRemaining={cooldownRemaining}
           t={t}
+          user={userProfile}
         />
       </div>
     </>

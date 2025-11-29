@@ -1,14 +1,28 @@
 
+export interface UserProfile {
+  uid: string;
+  displayName: string | null;
+  photoURL: string | null;
+  email: string | null;
+  karma: number;
+  createdAt: number;
+  isBanned?: boolean;
+}
+
 export interface Message {
   id: string;
+  title?: string; // Added for Reddit-style posts
   content: string;
   timestamp: number;
   sequenceNumber: number;
   senderId: string;
-  parentId?: string | null; // Allow null for Firestore compatibility
+  senderName?: string; // Snapshot of name
+  senderAvatar?: string; // Snapshot of avatar
+  parentId?: string | null; 
   tags: string[];
   isAdmin?: boolean;
-  votes?: Record<string, number>; // Map of userId -> vote value (1 or -1)
+  votes?: Record<string, number>; 
+  community?: string; // Future proofing for subreddits
 }
 
 export type Language = 'ru' | 'en';
@@ -21,6 +35,7 @@ export interface Translations {
   search_placeholder_short: string;
   search_clear: string;
   input_placeholder: string;
+  title_placeholder: string; // NEW
   chars_label: string;
   new_entry_label: string;
   publish_btn: string;
@@ -67,15 +82,45 @@ export interface Translations {
   close_btn: string;
   mobile_footer_text_1: string;
   mobile_footer_text_2: string;
+  // Auth
+  login_google: string;
+  guest_mode: string;
+  // Auth Modal
+  auth_title_login: string;
+  auth_title_register: string;
+  auth_google_btn: string;
+  auth_apple_btn: string;
+  auth_or_divider: string;
+  auth_email_label: string;
+  auth_password_label: string;
+  auth_username_label: string;
+  auth_forgot_pass: string;
+  auth_has_account: string;
+  auth_no_account: string;
+  auth_submit_login: string;
+  auth_submit_register: string;
+  auth_disclaimer: string;
+  auth_switch_login: string;
+  auth_switch_register: string;
+  // Auth Errors
+  error_generic: string;
+  error_invalid_email: string;
+  error_user_disabled: string;
+  error_user_not_found: string;
+  error_wrong_password: string;
+  error_email_already_in_use: string;
+  error_weak_password: string;
+  error_missing_fields: string;
 }
 
 export interface MessageInputProps {
-  onSendMessage: (content: string, manualTags?: string[]) => void;
+  onSendMessage: (content: string, title: string, manualTags?: string[]) => void;
   replyingTo: Message | null;
   onCancelReply: () => void;
   shouldFocusOnReply?: boolean;
   cooldownRemaining: number;
   t: Translations;
+  user: UserProfile | null;
 }
 
 export interface MessageListProps {
@@ -88,7 +133,7 @@ export interface MessageListProps {
   onBlockUser: (senderId: string) => void;
   onVote: (messageId: string, voteType: 'up' | 'down') => void;
   highlightedMessageId: string | null;
-  allMessagesRaw?: Message[]; // Needed to lookup parent sequence numbers
+  allMessagesRaw?: Message[]; 
   isAdmin: boolean;
   t: Translations;
   locale: string;
@@ -103,9 +148,9 @@ export interface MessageItemProps {
   onDeleteMessage: (id: string) => void;
   onBlockUser: (senderId: string) => void;
   onVote: (messageId: string, voteType: 'up' | 'down') => void;
-  parentSequenceNumber?: number; // Kept for fallback
-  parentSenderId?: string; // For "Reply to #HASH"
-  allMessages?: Message[]; // NEW: To find parent content
+  parentSequenceNumber?: number; 
+  parentSenderId?: string; 
+  allMessages?: Message[]; 
   isFlashHighlighted?: boolean;
   isAdmin: boolean;
   t: Translations;

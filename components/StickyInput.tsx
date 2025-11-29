@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyInputProps } from '../types';
-import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
+import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH, MAX_TITLE_LENGTH } from '../constants';
 
-export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisible, replyingTo, onCancelReply, cooldownRemaining, t }) => {
+export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisible, replyingTo, onCancelReply, cooldownRemaining, t, user }) => {
+  const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [tagInputText, setTagInputText] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
+  const [expanded, setExpanded] = useState(false); // Track expansion for title
   
   const inputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -20,10 +22,12 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-    onSendMessage(text, manualTags);
+    onSendMessage(text, title, manualTags);
     setText('');
+    setTitle('');
     setTagInputText('');
     setShowTagInput(false);
+    setExpanded(false);
     
     if (replyingTo) onCancelReply();
   };
@@ -31,6 +35,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setText(val.slice(0, MAX_MESSAGE_LENGTH));
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTitle(val.slice(0, MAX_TITLE_LENGTH));
   };
 
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,8 +52,6 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
       if (isVisible && replyingTo && inputRef.current) {
           inputRef.current.focus();
       }
-
-      // Inherit tags
       if (replyingTo && replyingTo.tags && replyingTo.tags.length > 0) {
           const tagsString = replyingTo.tags.join(', ');
           setTagInputText(tagsString);
@@ -75,12 +82,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
       setShowTagInput(false);
   };
 
-  // Removed translate-y logic, effectively always visible static
   return (
     <div 
-      className="fixed bottom-0 left-0 w-full z-50 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe border-t border-black/10 dark:border-white/10"
+      className="fixed bottom-0 left-0 w-full z-50 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe border-t border-black/10 dark:border-white/10 transition-all"
     >
-       {/* Replying Banner for Sticky */}
+       {/* Replying Banner */}
        {replyingTo && (
          <div className="bg-black dark:bg-white text-white dark:text-black p-2 flex justify-between items-center border-t border-black/10 dark:border-white/10">
              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
@@ -96,10 +102,23 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
              </button>
          </div>
        )}
+       
+       {/* Optional Title Input for Quick Post */}
+       {expanded && !replyingTo && (
+           <div className="px-4 pt-2">
+               <input 
+                    type="text" 
+                    value={title}
+                    onChange={handleTitleChange}
+                    placeholder={t.title_placeholder}
+                    className="w-full bg-transparent border-b border-black/10 dark:border-white/10 py-1 text-sm font-bold text-black dark:text-white placeholder-gray-400 focus:outline-none"
+               />
+           </div>
+       )}
 
-       {/* Tag Input Area (Collapsible) */}
+       {/* Tag Input Area */}
        {showTagInput && (
-          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-black/10 dark:border-white/10 px-4 py-2 relative">
+          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-black/10 dark:border-white/10 px-4 py-2 relative mt-1">
                <div className="relative">
                     <input 
                         ref={tagInputRef}
@@ -124,6 +143,18 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
        <div className="w-full px-4 py-3 flex items-center gap-4">
        <form onSubmit={handleSubmit} className="flex-1 flex items-center gap-4">
+          {/* Expand/Collapse for Title */}
+          {!replyingTo && (
+            <button
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+                className={`flex items-center justify-center w-8 h-8 border border-black/10 dark:border-white/10 transition-colors shrink-0 ${expanded ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'}`}
+                title="Expand Title"
+            >
+                <span className="text-xs font-bold">T</span>
+            </button>
+          )}
+
           {/* Toggle Tags Button */}
           {!showTagInput && (
              <button
@@ -147,7 +178,6 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                 className="w-full bg-transparent text-black dark:text-white text-base pr-14 placeholder-black dark:placeholder-white focus:outline-none"
               />
               
-              {/* Character Counter / Tags */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#252525] to-transparent">
                   {detectedTags.length > 0 ? (
                      <div className="flex gap-1">
@@ -174,13 +204,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                 <span>{cooldownRemaining}s</span>
             ) : (
                 <>
-                    {/* Mobile Icon */}
                     <span className="sm:hidden">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                         </svg>
                     </span>
-                    {/* Desktop Text */}
                     <span className="hidden sm:inline">{t.send_btn}</span>
                 </>
             )}

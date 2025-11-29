@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Message } from '../types';
-import { db, auth } from '../firebaseConfig';
+import { Message, UserProfile } from '../types';
+import { db, auth, googleProvider } from '../firebaseConfig';
 import { 
   collection, 
   addDoc, 
@@ -10,27 +10,90 @@ import {
   doc,
   onSnapshot, 
   query, 
-  orderBy
+  orderBy,
+  setDoc,
+  getDoc
 } from 'firebase/firestore';
+import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 const USER_ID_KEY = 'anon_log_user_id';
 
 export const useMessages = () => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userId, setUserId] = useState<string>('');
   const [bannedUserIds, setBannedUserIds] = useState<Set<string>>(new Set());
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // 1. Initialize User ID (Client Side Identity)
+  // 1. Authentication & Profile Sync
   useEffect(() => {
-    let storedUserId = localStorage.getItem(USER_ID_KEY);
-    if (!storedUserId) {
-      storedUserId = crypto.randomUUID();
-      localStorage.setItem(USER_ID_KEY, storedUserId);
-    }
-    setUserId(storedUserId);
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
+        if (firebaseUser) {
+            // Logged in via Google
+            setUserId(firebaseUser.uid);
+            
+            // Check/Create User Profile in Firestore
+            const userRef = doc(db, 'users', firebaseUser.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                const newProfile: UserProfile = {
+                    uid: firebaseUser.uid,
+                    displayName: firebaseUser.displayName,
+                    photoURL: firebaseUser.photoURL,
+                    email: firebaseUser.email,
+                    karma: 0,
+                    createdAt: Date.now()
+                };
+                await setDoc(userRef, newProfile);
+                setUserProfile(newProfile);
+            } else {
+                setUserProfile(userSnap.data() as UserProfile);
+            }
+        } else {
+            // Guest Mode (Legacy Anonymous)
+            let storedUserId = localStorage.getItem(USER_ID_KEY);
+            if (!storedUserId) {
+                storedUserId = crypto.randomUUID();
+                localStorage.setItem(USER_ID_KEY, storedUserId);
+            }
+            setUserId(storedUserId);
+            setUserProfile(null);
+        }
+        setIsAuthLoading(false);
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
-  // 2. Subscribe to Banned Users
+  // 2. Listen to real-time profile updates (Karma, Ban status)
+  useEffect(() => {
+      if (!userId || !userProfile) return;
+      
+      const unsubscribeProfile = onSnapshot(doc(db, 'users', userId), (doc) => {
+          if (doc.exists()) {
+              setUserProfile(doc.data() as UserProfile);
+          }
+      });
+
+      return () => unsubscribeProfile();
+  }, [userId]); // Only re-run if userId changes
+
+  // 3. Login/Logout Functions
+  const loginWithGoogle = async () => {
+      try {
+          await signInWithPopup(auth, googleProvider);
+      } catch (error) {
+          console.error("Login failed", error);
+      }
+  };
+
+  const logout = async () => {
+      await signOut(auth);
+      window.location.reload(); // Reload to reset anonymous state cleanly
+  };
+
+  // 4. Subscribe to Banned Users
   useEffect(() => {
       const unsubscribeBans = onSnapshot(collection(db, 'banned_users'), (snapshot) => {
           const bans = new Set(snapshot.docs.map(doc => doc.data().userId));
@@ -39,9 +102,8 @@ export const useMessages = () => {
       return () => unsubscribeBans();
   }, []);
 
-  // 3. Subscribe to Firestore Messages (Real-time)
+  // 5. Subscribe to Messages
   useEffect(() => {
-    // Query messages sorted by timestamp descending (newest first)
     const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -49,21 +111,18 @@ export const useMessages = () => {
         id: doc.id,
         ...doc.data()
       })) as Message[];
-      
       setMessages(msgs);
     }, (error) => {
-      console.error("Error fetching messages from Firebase:", error);
+      console.error("Error fetching messages:", error);
     });
-
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, []);
 
-  // 4. Add Message Function
-  const addMessage = useCallback(async (content: string, parentId?: string, manualTags: string[] = []) => {
+  // 6. Add Post/Message
+  const addMessage = useCallback(async (content: string, title: string, parentId?: string, manualTags: string[] = []) => {
     if (!userId) return;
 
-    // Process Tags
+    // Tags Logic
     const tagRegex = /#[a-zA-Z0-9_а-яА-ЯёЁ]+/g;
     const regexMatches = content.match(tagRegex) || [] as string[];
     const processedManualTags = manualTags
@@ -77,25 +136,26 @@ export const useMessages = () => {
       .map(tag => tag.toLowerCase());
 
     try {
-      // OPTIMISTIC UPDATE (Client-side)
       let nextSequence = 1;
       if (messages.length > 0) {
           const maxSeq = Math.max(...messages.map(m => m.sequenceNumber || 0));
           nextSequence = maxSeq + 1;
       }
       
-      const isUserAdmin = !!auth.currentUser;
+      const isAdmin = userProfile?.email?.includes('admin') || false; // Simple check for now
 
-      // Construct Message
       const newMessage: Omit<Message, 'id'> = {
+        title: title.trim() || undefined,
         content: content.trim(),
         timestamp: Date.now(),
         sequenceNumber: nextSequence,
         senderId: userId,
+        senderName: userProfile?.displayName || undefined,
+        senderAvatar: userProfile?.photoURL || undefined,
         parentId: parentId || null,
         tags: uniqueTags,
-        isAdmin: isUserAdmin,
-        votes: {} // Initialize empty votes
+        isAdmin: isAdmin,
+        votes: {} 
       };
       
       await addDoc(collection(db, 'messages'), newMessage);
@@ -104,29 +164,24 @@ export const useMessages = () => {
       console.error("Error adding document: ", e);
     }
 
-  }, [userId, messages]);
+  }, [userId, messages, userProfile]);
 
-  // 5. Delete Message Function (Admin)
   const deleteMessage = useCallback(async (id: string) => {
       try {
           await deleteDoc(doc(db, 'messages', id));
       } catch (e) {
-          console.error("Error deleting document: ", e);
-          alert("Ошибка удаления. Проверьте правила Firebase.");
+          console.error("Error deleting:", e);
       }
   }, []);
 
-  // 6. Block User Function (Admin)
   const blockUser = useCallback(async (senderId: string) => {
       try {
           await addDoc(collection(db, 'banned_users'), { userId: senderId, timestamp: Date.now() });
       } catch (e) {
-          console.error("Error blocking user: ", e);
-          alert("Ошибка блокировки.");
+          console.error("Error blocking:", e);
       }
   }, []);
 
-  // 7. Voting Function
   const toggleVote = useCallback(async (messageId: string, voteType: 'up' | 'down') => {
     if (!userId) return;
 
@@ -140,10 +195,8 @@ export const useMessages = () => {
     let updatedVotes = { ...currentVotes };
 
     if (previousVote === newVoteValue) {
-        // Remove vote if clicking the same button
         delete updatedVotes[userId];
     } else {
-        // Change or add vote
         updatedVotes[userId] = newVoteValue;
     }
 
@@ -151,12 +204,13 @@ export const useMessages = () => {
         await updateDoc(doc(db, 'messages', messageId), {
             votes: updatedVotes
         });
+        
+        // TODO: Karma logic for the author would go here in a Cloud Function
     } catch (e) {
-        console.error("Error updating vote:", e);
+        console.error("Error voting:", e);
     }
   }, [userId, messages]);
 
-  // Filter out messages from banned users
   const visibleMessages = messages.filter(msg => !bannedUserIds.has(msg.senderId));
 
   return {
@@ -165,6 +219,10 @@ export const useMessages = () => {
     deleteMessage,
     blockUser,
     toggleVote,
-    userId
+    userId,
+    userProfile,
+    loginWithGoogle,
+    logout,
+    isAuthLoading
   };
 };

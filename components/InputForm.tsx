@@ -1,14 +1,17 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { MessageInputProps } from '../types';
-import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH } from '../constants';
+import { MAX_MESSAGE_LENGTH, MAX_TITLE_LENGTH, MAX_TAG_LENGTH } from '../constants';
 
-export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replyingTo, onCancelReply, shouldFocusOnReply = true, cooldownRemaining, t }) => {
+export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replyingTo, onCancelReply, shouldFocusOnReply = true, cooldownRemaining, t, user }) => {
+  const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [tagInputText, setTagInputText] = useState('');
   const [showTagInput, setShowTagInput] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,8 +23,9 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-    onSendMessage(text, manualTags);
+    onSendMessage(text, title, manualTags);
     setText('');
+    setTitle('');
     setTagInputText('');
     setShowTagInput(false);
     
@@ -29,8 +33,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+    if (e.key === 'Enter' && e.ctrlKey) {
       handleSubmit(e);
     }
   };
@@ -38,6 +41,11 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setText(val.slice(0, MAX_MESSAGE_LENGTH));
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      setTitle(val.slice(0, MAX_TITLE_LENGTH));
   };
 
   const handleTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,20 +59,10 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
           textareaRef.current.focus();
       }
       
-      // Inherit tags from parent message
       if (replyingTo && replyingTo.tags && replyingTo.tags.length > 0) {
-          // Join tags without hashes for input if possible, or just as is. 
-          // The parsing logic handles both. Let's just join them as is.
-          // Note: tags in DB include '#'. 
           const tagsString = replyingTo.tags.join(', ');
           setTagInputText(tagsString);
           setShowTagInput(true);
-      } else {
-          // Don't clear if null, might interrupt user flow if they cancelled manually? 
-          // But usually replyingTo change implies new context.
-          if (!replyingTo) {
-             // Optional: Clear tags on cancel reply? Usually better to leave them if user typed them.
-          }
       }
   }, [replyingTo, shouldFocusOnReply]);
 
@@ -121,10 +119,22 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
       >
         <label htmlFor="message-input" className="sr-only">Message</label>
         
-        <div className={`relative w-full bg-[#f2f2f2] dark:bg-[#252525] clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''} ${showTagInput ? 'h-72' : 'h-64'}`}>
+        <div className={`relative w-full bg-[#f2f2f2] dark:bg-[#252525] clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''}`}>
           
+          {/* Title Input - Only show if NOT replying (new post) or if configured to allow titles in replies */}
+          {!replyingTo && (
+              <input
+                ref={titleRef}
+                type="text"
+                value={title}
+                onChange={handleTitleChange}
+                placeholder={t.title_placeholder}
+                className="w-full bg-transparent border-b border-black/5 dark:border-white/5 px-8 py-4 text-lg font-bold uppercase tracking-wide text-black dark:text-white placeholder-gray-400/70 dark:placeholder-gray-600/70 focus:outline-none"
+              />
+          )}
+
           {showTagInput && (
-              <div className="w-full px-8 pt-8 pb-2 animate-fade-in shrink-0">
+              <div className="w-full px-8 pt-4 pb-2 animate-fade-in shrink-0">
                   <div className="relative">
                     <input 
                         ref={tagInputRef}
@@ -138,7 +148,6 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
                         type="button"
                         onClick={handleCloseTags}
                         className="absolute right-0 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
-                        title="Clear and Close"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -155,12 +164,12 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             placeholder={t.input_placeholder}
-            className="w-full flex-1 bg-transparent text-black dark:text-white px-8 py-6 text-lg placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none resize-none"
+            className={`w-full flex-1 bg-transparent text-black dark:text-white px-8 py-6 text-base sm:text-lg placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none resize-none ${showTagInput ? 'h-48' : 'h-40'}`}
           />
           
           <div className="w-full px-8 pb-8 flex items-center gap-6 shrink-0">
              <span className="text-xs text-gray-400 dark:text-gray-600 uppercase tracking-wider">
-                {text.length} / {MAX_MESSAGE_LENGTH} {t.chars_label}
+                {text.length} / {MAX_MESSAGE_LENGTH}
              </span>
              
              {!showTagInput && (

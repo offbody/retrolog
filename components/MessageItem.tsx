@@ -148,10 +148,19 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         {/* 1. META HEADER */}
         <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1 gap-2">
             <div className="flex items-center flex-wrap gap-3 text-xs font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
-                <IdentityWidget userId={message.senderId} t={t} size="small" compact />
+                {message.senderName ? (
+                    // Registered User
+                    <div className="flex items-center gap-2 text-black dark:text-white">
+                        <span className="font-bold">{message.senderName}</span>
+                    </div>
+                ) : (
+                    // Anonymous / Legacy User
+                    <IdentityWidget userId={message.senderId} t={t} size="small" compact />
+                )}
+                
                 <span className="opacity-30">//</span>
                 <span className="font-mono whitespace-nowrap">
-                    {dateString} {timeString}
+                    {timeString}
                 </span>
 
                 {isOwnMessage && (
@@ -219,15 +228,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                         </svg>
                     </button>
-                    <button 
-                        onClick={handleCopy}
-                        className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        title={t.copy_btn}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.38l-7.5 5.47m7.5-6.818V7.375c0-.621-.504-1.125-1.125-1.125H9.375" />
-                        </svg>
-                    </button>
                 </div>
             </div>
         </div>
@@ -259,11 +259,18 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
             </div>
         )}
 
-        {/* 3. CONTENT SECTION (Compact font) */}
+        {/* 3. CONTENT SECTION */}
         <div className="w-full relative pb-16">
-          <p className="text-black dark:text-white text-sm sm:text-base font-normal leading-snug break-words whitespace-pre-wrap">
-            {renderContent(message.content)}
-          </p>
+            {/* TITLE (New) */}
+            {message.title && (
+                <h3 className="text-lg sm:text-xl font-bold leading-tight mb-2 text-black dark:text-white">
+                    {message.title}
+                </h3>
+            )}
+            
+            <p className="text-black dark:text-white text-sm sm:text-base font-normal leading-snug break-words whitespace-pre-wrap">
+                {renderContent(message.content)}
+            </p>
         </div>
 
         {/* 4. FOOTER: VOTING (Bottom Right) */}
@@ -273,19 +280,20 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 onClick={(e) => handleVoteAction(e, 'up')}
                 className={`transition-transform active:scale-90 ${
                     userVote === 1 
-                    ? 'text-black dark:text-white' 
+                    ? 'text-blue-600 dark:text-blue-400' 
                     : 'text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white'
                 }`}
                 title="Upvote"
              >
-                {/* Reddit Style Block Arrow Up */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6" fill={userVote === 1 ? "currentColor" : "none"} stroke={userVote === 1 ? "none" : "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 4L3 13h6v7h6v-7h6z" />
                 </svg>
              </button>
 
              {/* Score */}
-             <span className="text-sm font-bold font-mono min-w-[1ch] text-center text-black dark:text-white">
+             <span className={`text-sm font-bold font-mono min-w-[1ch] text-center ${
+                 score > 0 ? 'text-blue-600 dark:text-blue-400' : score < 0 ? 'text-red-500' : 'text-black dark:text-white'
+             }`}>
                 {score}
              </span>
 
@@ -294,12 +302,11 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 onClick={(e) => handleVoteAction(e, 'down')}
                 className={`transition-transform active:scale-90 ${
                     userVote === -1 
-                    ? 'text-black dark:text-white' 
+                    ? 'text-red-500' 
                     : 'text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white'
                 }`}
                 title="Downvote"
              >
-                {/* Reddit Style Block Arrow Down */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-6 h-6" fill={userVote === -1 ? "currentColor" : "none"} stroke={userVote === -1 ? "none" : "currentColor"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 20l9-9h-6V4H9v7H3z" />
                 </svg>
