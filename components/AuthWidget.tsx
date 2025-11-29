@@ -62,7 +62,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
         >
-            <div className="text-right hidden sm:block">
+            <div className="text-right">
                 <div className="text-xs font-bold uppercase text-black dark:text-white">
                     {user.displayName || 'USER'}
                 </div>
@@ -76,10 +76,6 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
                 className="w-8 h-8 border border-black dark:border-white flex items-center justify-center"
                 style={{ backgroundColor: avatarColor }}
             >
-                {/* Optional: Add first letter if desired, but request implies just colored square */}
-                {/* <span className="text-xs font-bold mix-blend-difference text-white">
-                    {user.displayName?.[0]?.toUpperCase() || 'U'}
-                </span> */}
             </div>
         </button>
 

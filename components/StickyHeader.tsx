@@ -6,7 +6,6 @@ import { SearchBar } from './SearchBar';
 
 interface StickyHeaderProps {
   isVisible: boolean;
-  userId: string;
   userProfile: UserProfile | null;
   onLogin: () => Promise<void>;
   onToggleMenu: () => void;
@@ -63,7 +62,7 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userProfi
             <div className="flex-1 flex justify-end shrink-0">
                 {userProfile ? (
                      <div className="flex items-center gap-3">
-                        <span className="hidden sm:block text-xs font-bold uppercase text-black dark:text-white">
+                        <span className="text-xs font-bold uppercase text-black dark:text-white">
                             {userProfile.displayName || 'USER'}
                         </span>
                         
