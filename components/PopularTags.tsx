@@ -18,11 +18,11 @@ export const PopularTags: React.FC<PopularTagsProps> = ({ tags, onTagClick, acti
 
   return (
     <div className={`w-full ${className}`}>
-      <div className="flex items-center gap-4 mb-4">
-         <span className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 whitespace-nowrap">
-             {t.popular_tags_label} //
+      {/* Header - Updated to match Sort Labels in MessageList */}
+      <div className="mb-4 border-b border-black/10 dark:border-white/10 pb-4">
+         <span className="text-sm font-mono font-normal uppercase tracking-widest text-black dark:text-white whitespace-nowrap">
+             {t.popular_tags_label}
          </span>
-         <div className="h-[1px] w-full bg-black/10 dark:bg-white/10"></div>
       </div>
       
       {/* 

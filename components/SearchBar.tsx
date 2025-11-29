@@ -2,10 +2,25 @@
 import React from 'react';
 import { SearchBarProps } from '../types';
 
-export const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, t }) => {
+interface CustomSearchBarProps extends SearchBarProps {
+  variant?: 'default' | 'header';
+}
+
+export const SearchBar: React.FC<CustomSearchBarProps> = ({ value, onChange, t, variant = 'default' }) => {
+  // We keep the variant prop for potential future spacing needs, 
+  // but we restore the border styles for both variants as requested.
+  
   return (
-    <div className="w-full border-b border-black/10 dark:border-white/10 hover:border-black dark:hover:border-white focus-within:border-black dark:focus-within:border-white transition-colors duration-300 pb-4 flex items-center gap-4">
-      <label htmlFor="search" className="text-sm font-bold uppercase tracking-widest whitespace-nowrap text-black dark:text-white">
+    <div 
+      className={`
+        w-full flex items-center gap-4 transition-colors duration-300
+        border-b border-black/10 dark:border-white/10 
+        hover:border-black dark:hover:border-white 
+        focus-within:border-black dark:focus-within:border-white 
+        pb-4 bg-transparent
+      `}
+    >
+      <label htmlFor="search" className="text-sm font-bold uppercase tracking-widest whitespace-nowrap text-black dark:text-white cursor-pointer">
         {t.search_label}
       </label>
       <input

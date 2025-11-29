@@ -111,6 +111,9 @@ export interface Translations {
   error_email_already_in_use: string;
   error_weak_password: string;
   error_missing_fields: string;
+  // Auth Success
+  auth_reset_sent: string;
+  auth_verification_sent: string;
 }
 
 export interface MessageInputProps {

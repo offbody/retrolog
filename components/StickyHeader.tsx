@@ -1,55 +1,81 @@
+
 import React from 'react';
-import { Translations } from '../types';
+import { Translations, UserProfile } from '../types';
 import { IdentityWidget } from './IdentityWidget';
+import { SearchBar } from './SearchBar';
 
 interface StickyHeaderProps {
   isVisible: boolean;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
   userId: string;
+  userProfile: UserProfile | null;
+  onLogin: () => Promise<void>;
+  onToggleMenu: () => void;
   t: Translations;
+  searchQuery?: string;
+  onSearchChange?: (val: string) => void;
 }
 
-export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, searchQuery, onSearchChange, userId, t }) => {
+export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userId, userProfile, onLogin, onToggleMenu, t, searchQuery = '', onSearchChange = () => {} }) => {
   return (
     <div 
       className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#121212]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-12 py-3">
-        <div className="flex items-center justify-between gap-4 sm:gap-8">
+      <div className="w-full max-w-[1600px] mx-auto px-6 sm:px-12 py-3">
+        <div className="flex items-center justify-between gap-4">
             
-            {/* Left: Logo */}
-            <div 
-                className="hidden sm:block font-mono font-bold uppercase tracking-widest text-sm cursor-pointer select-none" 
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            >
-                ANONLOG 1.01
+            {/* Left: Burger Menu & Search */}
+            <div className="flex-1 flex items-center justify-start gap-6">
+                <button 
+                    onClick={onToggleMenu}
+                    className="w-10 h-10 flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                    aria-label="Open Menu"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+
+                {/* Search Bar - Hidden on small mobile */}
+                <div className="hidden md:block w-64 lg:w-80">
+                   <SearchBar value={searchQuery} onChange={onSearchChange} t={t} variant="header" />
+                </div>
             </div>
             
-            {/* Center: Compact Search */}
-            <div className="flex-grow max-w-2xl relative">
-                <input 
-                    type="text" 
-                    value={searchQuery}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder={t.search_placeholder_short}
-                    className="w-full bg-[#f2f2f2] dark:bg-[#252525] border border-transparent focus:border-black dark:focus:border-white px-4 py-2 text-base font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none transition-colors rounded-sm"
-                />
-                {searchQuery && (
-                    <button 
-                        onClick={() => onSearchChange('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase text-gray-400 hover:text-black dark:hover:text-white"
-                    >
-                        X
-                    </button>
-                )}
+            {/* Center: System Name */}
+            <div className="flex-none flex justify-center">
+                <div 
+                    className="font-mono font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap hidden sm:block" 
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                    {t.system_name}
+                </div>
+                <div 
+                    className="font-mono font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap sm:hidden" 
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                    ANONLOG
+                </div>
             </div>
 
-            {/* Right: Compact Identity Widget */}
-            <div className="shrink-0">
-                <IdentityWidget userId={userId} t={t} compact={true} />
+            {/* Right: Auth Logic */}
+            <div className="flex-1 flex justify-end shrink-0">
+                {userProfile ? (
+                     <div className="flex items-center gap-3">
+                        <span className="hidden sm:block text-xs font-bold uppercase text-black dark:text-white">
+                            {userProfile.displayName || 'USER'}
+                        </span>
+                        <IdentityWidget userId={userId} t={t} compact={true} />
+                     </div>
+                ) : (
+                    <button 
+                        onClick={() => onLogin()}
+                        className="border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase font-bold tracking-widest whitespace-nowrap text-xs px-4 py-2"
+                    >
+                        {t.login_btn}
+                    </button>
+                )}
             </div>
         </div>
       </div>

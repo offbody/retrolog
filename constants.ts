@@ -8,15 +8,15 @@ export const MAX_TITLE_LENGTH = 300; // New constant
 export const MAX_TAG_LENGTH = 32;
 
 export const PREDEFINED_TAGS = [
-  'Cyberpunk', 'Tech', 'Coding', 'Design', 'Crypto', 'AI',
-  'Gaming', 'Music', 'Movies', 'Memes', 'News', 'Science',
-  'Space', 'Retro', 'Hardware', 'Software', 'Privacy', 'Security',
-  'Startups', 'Career', 'Life', 'Thoughts', 'Ask', 'Show'
+  'Киберпанк', 'Технологии', 'Кодинг', 'Дизайн', 'Крипта', 'ИИ',
+  'Игры', 'Музыка', 'Кино', 'Мемы', 'Новости', 'Наука',
+  'Космос', 'Ретро', 'Железо', 'Софт', 'Приватность', 'Безопасность',
+  'Стартапы', 'Карьера', 'Жизнь', 'Мысли', 'Вопрос', 'Оффтоп'
 ];
 
 export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
-    system_name: 'ANONLOG // MARK 1',
+    system_name: 'ANONLOG // Y2K VIBE',
     footer: 'Decentralized // Persistent // Community',
     search_label: 'SEARCH //',
     search_placeholder: 'FIND TOPICS...',
@@ -95,9 +95,12 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     error_email_already_in_use: 'EMAIL ALREADY REGISTERED',
     error_weak_password: 'PASSWORD TOO WEAK',
     error_missing_fields: 'ALL FIELDS REQUIRED',
+    // Auth Success
+    auth_reset_sent: 'RESET LINK SENT TO EMAIL',
+    auth_verification_sent: 'VERIFICATION EMAIL SENT',
   },
   ru: {
-    system_name: 'ANONLOG // MARK 1',
+    system_name: 'АНОНЛОГ // ВАЙБ НУЛЕВЫХ',
     footer: 'Децентрализация // Сообщество // Наследие',
     search_label: 'ПОИСК //',
     search_placeholder: 'НАЙТИ ТЕМУ...',
@@ -176,5 +179,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     error_email_already_in_use: 'EMAIL УЖЕ ЗАРЕГИСТРИРОВАН',
     error_weak_password: 'ПАРОЛЬ СЛИШКОМ ПРОСТОЙ',
     error_missing_fields: 'ЗАПОЛНИТЕ ВСЕ ПОЛЯ',
+    // Auth Success
+    auth_reset_sent: 'ССЫЛКА СБРОСА ОТПРАВЛЕНА',
+    auth_verification_sent: 'ПИСЬМО ПОДТВЕРЖДЕНИЯ ОТПРАВЛЕНО',
   }
 };

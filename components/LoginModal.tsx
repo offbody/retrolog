@@ -5,7 +5,9 @@ import { auth, db } from '../firebaseConfig';
 import { 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
-    updateProfile
+    updateProfile,
+    sendPasswordResetEmail,
+    sendEmailVerification
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
@@ -26,10 +28,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
   // UI State
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const toggleMode = () => {
     setMode(prev => prev === 'login' ? 'register' : 'login');
     setError(null);
+    setSuccessMsg(null);
   };
 
   const getErrorMessage = (errCode: string): string => {
@@ -49,6 +53,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
   const handleGoogleClick = async () => {
       setIsLoading(true);
       setError(null);
+      setSuccessMsg(null);
       try {
           await onGoogleLogin();
           // Modal closes in parent component on success
@@ -58,9 +63,33 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
       }
   };
 
+  const handleForgotPassword = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (!email.trim()) {
+          setError(t.error_invalid_email);
+          return;
+      }
+      
+      setIsLoading(true);
+      setError(null);
+      setSuccessMsg(null);
+
+      try {
+          await sendPasswordResetEmail(auth, email);
+          setSuccessMsg(t.auth_reset_sent);
+      } catch (err: any) {
+          console.error(err);
+          const errorCode = err.code || 'unknown';
+          setError(getErrorMessage(errorCode));
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
+      setSuccessMsg(null);
 
       if (!email.trim() || !password.trim()) {
           setError(getErrorMessage('missing-fields'));
@@ -87,8 +116,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
               await updateProfile(user, {
                   displayName: username
               });
+              
+              // 2. Send Verification Email
+              try {
+                  await sendEmailVerification(user);
+                  // Not blocking flow if this fails, but good to know
+              } catch (verifyErr) {
+                  console.warn("Verification email failed", verifyErr);
+              }
 
-              // 2. Create Firestore Document Immediately
+              // 3. Create Firestore Document Immediately
               const newUserProfile: UserProfile = {
                   uid: user.uid,
                   displayName: username,
@@ -220,16 +257,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 </div>
                 
                 <div className="flex justify-between items-center mt-1">
-                     {error ? (
+                     {error && (
                         <span className="text-[10px] font-bold uppercase tracking-wide text-red-500 animate-pulse">
                             [ERR]: {error}
                         </span>
-                     ) : (
-                         mode === 'login' ? (
-                            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black dark:hover:text-white transition-colors hover:underline decoration-dashed">
-                                {t.auth_forgot_pass}
-                            </a>
-                        ) : <span></span>
+                     )}
+                     
+                     {successMsg && (
+                         <span className="text-[10px] font-bold uppercase tracking-wide text-green-500">
+                             [OK]: {successMsg}
+                         </span>
+                     )}
+
+                     {mode === 'login' && !error && !successMsg && (
+                        <button 
+                            type="button"
+                            onClick={handleForgotPassword}
+                            className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black dark:hover:text-white transition-colors hover:underline decoration-dashed"
+                        >
+                            {t.auth_forgot_pass}
+                        </button>
                      )}
                 </div>
 

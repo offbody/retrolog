@@ -5,7 +5,6 @@ import { SearchBar } from './components/SearchBar';
 import { StickyInput } from './components/StickyInput';
 import { StickyHeader } from './components/StickyHeader';
 import { ThemeToggle } from './components/ThemeToggle';
-import { LanguageToggle } from './components/LanguageToggle';
 import { Preloader } from './components/Preloader';
 import { AuthWidget } from './components/AuthWidget';
 import { PixelCanvas } from './components/PixelCanvas';
@@ -25,8 +24,7 @@ const App: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchMode, setIsSearchMode] = useState(false); 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false); // Side menu state
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -96,34 +94,44 @@ const App: React.FC = () => {
     }
   }, [cooldownRemaining]);
   
-  const [language, setLanguage] = useState<Language>('ru'); 
+  // Force Russian language
+  const [language] = useState<Language>('ru'); 
   const t = TRANSLATIONS[language];
-  const locale = language === 'ru' ? 'ru-RU' : 'en-US';
+  const locale = 'ru-RU';
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'ru' ? 'en' : 'ru');
-  };
-  
+  // THEME LOGIC: Auto Sync with System
   const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-        const savedTheme = localStorage.getItem('anon_log_theme');
-        if (savedTheme) {
-            return savedTheme === 'dark';
-        }
+    if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
 
+  // Listen for system theme changes and sync automatically
+  useEffect(() => {
+      if (!window.matchMedia) return;
+      
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e: MediaQueryListEvent) => {
+          setIsDark(e.matches);
+      };
+
+      // Set initial value
+      setIsDark(mediaQuery.matches);
+
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('anon_log_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('anon_log_theme', 'light');
     }
   }, [isDark]);
 
+  // Manual toggle just in case, though system sync is primary
   const toggleTheme = () => setIsDark(!isDark);
   
   const topSectionRef = useRef<HTMLDivElement>(null);
@@ -216,6 +224,7 @@ const App: React.FC = () => {
           setSelectedTag(tag);
           setSearchQuery(''); 
           window.scrollTo({ top: 0, behavior: 'smooth' });
+          setIsDrawerOpen(false); // Close mobile drawer if open
       }
   };
 
@@ -236,211 +245,124 @@ const App: React.FC = () => {
       
       <StickyHeader 
         isVisible={showStickyHeader} 
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange} 
         userId={userId}
+        userProfile={userProfile}
+        onLogin={() => loginWithGoogle()}
+        onToggleMenu={() => setIsDrawerOpen(true)}
         t={t}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
       />
       
-      {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-[60] bg-white dark:bg-[#121212] p-6 flex flex-col font-mono">
-              <div className="flex justify-end mb-8">
-                  <button 
-                    onClick={() => setIsMobileMenuOpen(false)} 
-                    className="p-1.5 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                  >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                  </button>
-              </div>
-              
-              <div className="flex flex-col gap-6 items-center justify-center flex-1 w-full max-w-sm mx-auto">
-                  <div className="w-full border border-dashed border-black/30 dark:border-white/30 p-6 flex flex-col items-center gap-4">
-                      <span className="text-xs font-bold uppercase tracking-widest opacity-50">{t.system_name}</span>
-                      <div className="scale-125">
-                         <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
-                      </div>
-                  </div>
-
-                  <div className="w-full h-[1px] bg-black/10 dark:bg-white/10 my-2"></div>
-                  
-                  <button 
-                      onClick={toggleLanguage}
-                      className="w-full border border-black dark:border-white p-4 flex items-center justify-center gap-4 text-lg font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
-                  >
-                      <span className={language === 'ru' ? "opacity-100" : "opacity-30"}>RU</span>
-                      <span className="opacity-30">//</span>
-                      <span className={language === 'en' ? "opacity-100" : "opacity-30"}>EN</span>
-                  </button>
-                  
-                  {isAdmin && (
-                    <button onClick={handleAdminLogout} className="w-full mt-4 text-sm font-bold bg-red-500 text-white p-4 hover:bg-red-600 uppercase tracking-widest border border-red-600">
-                        {t.logout_btn}
+      {/* SIDEBAR DRAWER (Mobile & Desktop Triggered by Burger) */}
+      {isDrawerOpen && (
+          <>
+            <div 
+                className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+                onClick={() => setIsDrawerOpen(false)}
+            />
+            <div className="fixed inset-y-0 left-0 z-[70] w-80 bg-white dark:bg-[#121212] border-r border-black dark:border-white p-6 flex flex-col transform transition-transform duration-300 ease-out animate-fade-in font-mono shadow-2xl">
+                <div className="flex justify-between items-center mb-8 border-b border-black dark:border-white pb-4">
+                    <span className="text-sm font-bold uppercase tracking-widest">{t.menu_btn}</span>
+                    <button 
+                        onClick={() => setIsDrawerOpen(false)}
+                        className="p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
-                  )}
-              </div>
+                </div>
+                
+                <nav className="flex flex-col gap-4 flex-1 overflow-y-auto no-scrollbar">
+                    {/* Search in Drawer for Mobile */}
+                    <div className="lg:hidden mb-4">
+                         <SearchBar value={searchQuery} onChange={handleSearchChange} t={t} />
+                    </div>
 
-              <div className="mt-auto pt-8 text-center opacity-40 text-[10px] uppercase tracking-widest leading-relaxed">
-                  <p>{t.mobile_footer_text_1}</p>
-                  <p>{t.mobile_footer_text_2}</p>
-              </div>
-          </div>
+                    <button 
+                        onClick={() => { setSelectedTag(null); setIsDrawerOpen(false); window.scrollTo({top:0, behavior:'smooth'}); }}
+                        className="text-left py-3 text-lg font-bold uppercase tracking-widest hover:pl-4 transition-all duration-300"
+                    >
+                        {t.all_messages_tab}
+                    </button>
+                    
+                    <div className="mt-4">
+                        <PopularTags 
+                            tags={popularTags} 
+                            onTagClick={handleTagClick} 
+                            activeTag={selectedTag || ''} 
+                            t={t} 
+                            className="w-full"
+                        />
+                    </div>
+                </nav>
+
+                <div className="mt-auto pt-6 border-t border-black/10 dark:border-white/10">
+                     <div className="flex flex-col gap-4">
+                        {userProfile && (
+                            <button onClick={logout} className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600 text-left">
+                                {t.logout_btn}
+                            </button>
+                        )}
+                        <p className="text-[10px] uppercase text-gray-400">
+                            {t.mobile_footer_text_2}
+                        </p>
+                     </div>
+                </div>
+            </div>
+          </>
       )}
 
       <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#121212] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <div className="w-full max-w-[1600px] mx-auto px-6 sm:p-12 pt-6">
           
           <div ref={topSectionRef}>
-            <header className="mb-2 md:mb-8 lg:mb-8 w-full">
-                {/* DESKTOP */}
-                <div className="hidden lg:flex items-center justify-between h-10 gap-4">
-                    <div className="flex-1 flex justify-start items-center gap-8">
-                    <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
-                    
-                    <div className="flex items-center gap-4">
-                            <span className="text-sm font-bold uppercase tracking-widest text-black dark:text-white whitespace-nowrap">
-                                {t.search_label}
-                            </span>
-                            <div className="relative w-64 group">
-                                <input 
-                                    type="text" 
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearchChange(e.target.value)} 
-                                    placeholder={t.search_placeholder}
-                                    className="w-full bg-transparent border-b border-black/20 dark:border-white/20 py-1 text-sm font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
-                                />
-                                {searchQuery && (
-                                    <button 
-                                        onClick={() => handleSearchChange('')}
-                                        className="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase text-gray-400 hover:text-black dark:hover:text-white"
-                                    >
-                                        X
-                                    </button>
-                                )}
-                            </div>
+            {/* UNIFIED HEADER (Desktop & Mobile) */}
+            <header className="mb-2 md:mb-8 lg:mb-8 w-full h-16 sm:h-20 flex items-center justify-between border-b border-black dark:border-white pb-4 sm:pb-0 sm:border-none relative gap-4">
+                
+                {/* LEFT: Burger Menu & Search */}
+                <div className="flex-1 flex items-center justify-start gap-6">
+                    <button 
+                        onClick={() => setIsDrawerOpen(true)}
+                        className="w-10 h-10 flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                        aria-label="Open Menu"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+
+                    {/* Search Bar - Hidden on small mobile, visible on desktop */}
+                    <div className="hidden md:block w-80">
+                         <SearchBar value={searchQuery} onChange={handleSearchChange} t={t} variant="header" />
                     </div>
-                    </div>
-                    <div className="shrink-0 flex gap-4">
-                        <a 
+                </div>
+
+                {/* CENTER: System Name - Hidden on very small screens if needed, but flex should handle it */}
+                <div className="flex-none flex justify-center">
+                    <a 
                         href="/"
-                        className="border border-dashed border-black dark:border-white/50 px-4 py-2 uppercase text-sm tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                        >
+                        className="border border-dashed border-black dark:border-white/50 px-4 py-2 uppercase text-xs sm:text-sm tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black whitespace-nowrap hidden sm:block"
+                    >
                         {t.system_name}
-                        </a>
-                        {isAdmin && (
-                            <button onClick={handleAdminLogout} className="text-xs font-bold bg-red-500 text-white px-2 hover:bg-red-600">
-                                {t.logout_btn}
-                            </button>
-                        )}
-                    </div>
-                    <div className="flex-1 flex justify-end items-center gap-8">
+                    </a>
+                    {/* Mobile abbreviated name */}
+                     <a 
+                        href="/"
+                        className="border border-dashed border-black dark:border-white/50 px-2 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black whitespace-nowrap sm:hidden"
+                    >
+                        ANONLOG
+                    </a>
+                </div>
+
+                {/* RIGHT: Auth & Theme */}
+                <div className="flex-1 flex justify-end items-center gap-4 sm:gap-6">
                     <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                     <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
-                    </div>
-                </div>
-
-                {/* TABLET */}
-                <div className="hidden md:flex lg:hidden flex-col gap-6">
-                    <div className="flex items-center justify-between w-full">
-                        <LanguageToggle language={language} toggleLanguage={toggleLanguage} />
-                        <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
-                        <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
-                    </div>
-                    <div className="flex justify-center items-center gap-2 w-full">
-                        <a 
-                        href="/"
-                        className="border border-dashed border-black dark:border-white/50 px-4 py-2 uppercase text-sm tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                        >
-                        {t.system_name}
-                        </a>
-                    </div>
-                </div>
-
-                {/* MOBILE HEADER */}
-                <div className="flex md:hidden flex-col gap-2">
-                    {isSearchMode ? (
-                        <div className="flex items-center gap-3 w-full border-b border-black dark:border-white pb-2 h-10 transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 shrink-0">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                            </svg>
-                            <input 
-                                autoFocus
-                                type="text" 
-                                value={searchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)} 
-                                placeholder={t.search_placeholder_short}
-                                className="flex-1 bg-transparent text-base font-mono uppercase tracking-widest text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
-                            />
-                            <button 
-                                onClick={() => {
-                                    if (searchQuery) handleSearchChange('');
-                                    else setIsSearchMode(false);
-                                }}
-                                className="text-xs font-bold uppercase tracking-widest shrink-0"
-                            >
-                                {searchQuery ? t.search_clear : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                )}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="relative w-full h-10 flex sm:grid sm:grid-cols-3 items-center justify-between">
-                            {/* Left: Identity */}
-                            <div className="flex items-center justify-start">
-                                <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} compact />
-                            </div>
-                            
-                            {/* Center: Logo (Landscape only) */}
-                            <div className="hidden sm:flex items-center justify-center">
-                                <a 
-                                href="/"
-                                className="border border-dashed border-black dark:border-white/50 px-3 py-1.5 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black leading-none whitespace-nowrap"
-                                >
-                                {t.system_name}
-                                </a>
-                            </div>
-
-                            {/* Right: Icons */}
-                            <div className="flex items-center justify-end gap-3">
-                                <button 
-                                    onClick={toggleTheme}
-                                    className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-black dark:text-white hover:opacity-70 transition-opacity"
-                                >
-                                    <span>[{isDark ? t.theme_dark : t.theme_light}]</span>
-                                </button>
-
-                                <button onClick={() => setIsSearchMode(true)} className="p-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                    </svg>
-                                </button>
-                                <button 
-                                    onClick={() => setIsMobileMenuOpen(true)}
-                                    className="p-1.5 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    
-                    <div className="sm:hidden flex justify-center items-center w-full mt-2">
-                        <a 
-                        href="/"
-                        className="border border-dashed border-black dark:border-white/50 px-3 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black whitespace-nowrap"
-                        >
-                        {t.system_name}
-                        </a>
-                    </div>
                 </div>
             </header>
 
-            {/* Changed mb-12 lg:mb-16 to mb-2 md:mb-8 lg:mb-8 to match header spacing */}
             <section className="w-full h-[100px] border-b border-black/10 dark:border-white/10 relative overflow-hidden mb-2 md:mb-8 lg:mb-8">
                 <PixelCanvas />
             </section>
@@ -451,19 +373,6 @@ const App: React.FC = () => {
               
               {/* Left Column (Feed) */}
               <div className="lg:col-span-3">
-                  {/* Mobile Popular Tags (Horizontal) */}
-                  <PopularTags 
-                      tags={popularTags} 
-                      onTagClick={handleTagClick} 
-                      activeTag={selectedTag || ''} 
-                      t={t} 
-                      className="lg:hidden mb-8"
-                  />
-                  
-                  <div className="w-full hidden md:block lg:hidden mb-8">
-                      <SearchBar value={searchQuery} onChange={handleSearchChange} t={t} />
-                  </div>
-                  
                   <MessageList 
                       messages={filteredMessages} 
                       allMessagesRaw={messages}
@@ -483,16 +392,13 @@ const App: React.FC = () => {
 
               {/* Right Column (Sidebar) - Desktop Only */}
               <aside className="hidden lg:block lg:col-span-1 h-fit sticky top-24">
-                   <SearchBar value={searchQuery} onChange={handleSearchChange} t={t} />
-                   <div className="mt-8">
-                       <PopularTags 
-                          tags={popularTags} 
-                          onTagClick={handleTagClick} 
-                          activeTag={selectedTag || ''} 
-                          t={t} 
-                          className="" 
-                       />
-                   </div>
+                   <PopularTags 
+                      tags={popularTags} 
+                      onTagClick={handleTagClick} 
+                      activeTag={selectedTag || ''} 
+                      t={t} 
+                      className="" 
+                   />
                    
                    <footer className="mt-12 text-xs uppercase tracking-widest text-gray-400 leading-relaxed opacity-50">
                        <p>{t.footer}</p>
