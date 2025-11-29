@@ -50,7 +50,7 @@ export const ScrollToTop: React.FC = () => {
       {/* Scroll To Top */}
       <button
         onClick={scrollToTop}
-        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white dark:bg-[#252525] border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-500 shadow-lg ${
+        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white dark:bg-[#252525] border border-[#1D2025] dark:border-white text-black dark:text-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-500 shadow-lg ${
             showTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'
         }`}
         aria-label="Scroll to top"
@@ -63,7 +63,7 @@ export const ScrollToTop: React.FC = () => {
       {/* Scroll To Bottom */}
       <button
         onClick={scrollToBottom}
-        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white dark:bg-[#252525] border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-500 shadow-lg ${
+        className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white dark:bg-[#252525] border border-[#1D2025] dark:border-white text-black dark:text-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-500 shadow-lg ${
             showBottom ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none absolute'
         }`}
         aria-label="Scroll to bottom"

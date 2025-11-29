@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Translations, UserProfile } from '../types';
 import { generateColorFromId } from './IdentityWidget';
@@ -17,7 +16,7 @@ interface StickyHeaderProps {
 export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userProfile, onLogin, onToggleMenu, t, searchQuery = '', onSearchChange = () => {} }) => {
   return (
     <div 
-      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#121212]/95 backdrop-blur-sm border-b border-black/10 dark:border-white/10 ${
+      className={`fixed top-0 left-0 w-full z-40 transform transition-transform duration-300 ease-in-out bg-white/95 dark:bg-[#121212]/95 backdrop-blur-sm border-b border-[#1D2025]/10 dark:border-white/10 font-mono ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
@@ -28,10 +27,10 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userProfi
             <div className="flex-1 flex items-center justify-start gap-6">
                 <button 
                     onClick={onToggleMenu}
-                    className="w-10 h-10 flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                    className="w-[34px] h-[34px] flex items-center justify-center border border-[#1D2025] dark:border-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
                     aria-label="Open Menu"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
@@ -45,16 +44,16 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userProfi
             {/* Center: System Name */}
             <div className="flex-none flex justify-center">
                 <div 
-                    className="font-mono font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap hidden sm:block" 
+                    className="font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap hidden sm:block font-mono" 
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 >
                     {t.system_name}
                 </div>
                 <div 
-                    className="font-mono font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap sm:hidden" 
+                    className="font-bold uppercase tracking-widest text-sm cursor-pointer select-none whitespace-nowrap sm:hidden font-mono" 
                     onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                 >
-                    ANONLOG
+                    RETROLOG
                 </div>
             </div>
 
@@ -62,20 +61,20 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({ isVisible, userProfi
             <div className="flex-1 flex justify-end shrink-0">
                 {userProfile ? (
                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-bold uppercase text-black dark:text-white">
+                        <span className="text-xs font-bold uppercase text-black dark:text-white font-mono">
                             {userProfile.displayName || 'USER'}
                         </span>
                         
                         {/* Colored Square Avatar */}
                         <div 
-                            className="w-8 h-8 border border-black dark:border-white"
+                            className="w-8 h-8 border border-[#1D2025] dark:border-white"
                             style={{ backgroundColor: generateColorFromId(userProfile.uid) }}
                         />
                      </div>
                 ) : (
                     <button 
                         onClick={() => onLogin()}
-                        className="border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase font-bold tracking-widest whitespace-nowrap text-xs px-4 py-2"
+                        className="border border-[#1D2025] dark:border-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase font-bold tracking-widest whitespace-nowrap text-xs px-4 py-2 font-mono"
                     >
                         {t.login_btn}
                     </button>

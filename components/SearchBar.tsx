@@ -14,9 +14,9 @@ export const SearchBar: React.FC<CustomSearchBarProps> = ({ value, onChange, t }
     <div 
       className={`
         w-full flex items-center gap-4 transition-colors duration-300
-        border-b border-black/10 dark:border-white/10 
-        hover:border-black dark:hover:border-white 
-        focus-within:border-black dark:focus-within:border-white 
+        border-b border-[#1D2025]/10 dark:border-white/10 
+        hover:border-[#1D2025] dark:hover:border-white 
+        focus-within:border-[#1D2025] dark:focus-within:border-white 
         pb-4 bg-transparent
       `}
     >

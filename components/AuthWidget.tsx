@@ -35,7 +35,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
         <button 
             onClick={handleLoginClick}
             className={`
-                border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase font-bold tracking-widest whitespace-nowrap
+                border border-[#1D2025] dark:border-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors uppercase font-bold tracking-widest whitespace-nowrap
                 ${compact ? 'text-[10px] px-2 py-1' : 'text-xs px-4 py-2'}
             `}
         >
@@ -73,7 +73,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
             
             {/* Unified Avatar: Colored Square for all users (Google & Email) */}
             <div 
-                className="w-8 h-8 border border-black dark:border-white flex items-center justify-center"
+                className="w-8 h-8 border border-[#1D2025] dark:border-white flex items-center justify-center"
                 style={{ backgroundColor: avatarColor }}
             >
             </div>
@@ -85,8 +85,8 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
                     className="fixed inset-0 z-30 cursor-default" 
                     onClick={() => setShowMenu(false)}
                 ></div>
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#1a1a1a] border border-black dark:border-white shadow-lg z-40 clip-corner">
-                    <div className="p-4 border-b border-black/10 dark:border-white/10 sm:hidden">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-[#1a1a1a] border border-[#1D2025] dark:border-white shadow-lg z-40 clip-corner">
+                    <div className="p-4 border-b border-[#1D2025]/10 dark:border-white/10 sm:hidden">
                         <div className="text-xs font-bold uppercase text-black dark:text-white">
                             {user.displayName}
                         </div>
@@ -103,7 +103,7 @@ export const AuthWidget: React.FC<AuthWidgetProps> = ({ user, onLogin, onLogout,
                          </div>
                          <button 
                             onClick={onLogout}
-                            className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors border-t border-black/10 dark:border-white/10"
+                            className="px-4 py-3 text-left text-xs font-bold uppercase tracking-widest hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors border-t border-[#1D2025]/10 dark:border-white/10"
                          >
                             {t.logout_btn}
                          </button>

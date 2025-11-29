@@ -318,10 +318,10 @@ const App: React.FC = () => {
                 <div className="flex-1 flex items-center justify-start gap-6">
                     <button 
                         onClick={() => setIsDrawerOpen(true)}
-                        className="w-10 h-10 flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                        className="w-[34px] h-[34px] flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
                         aria-label="Open Menu"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         </svg>
                     </button>
@@ -345,14 +345,14 @@ const App: React.FC = () => {
                         href="/"
                         className="border border-dashed border-black dark:border-white/50 px-2 py-2 uppercase text-xs tracking-widest font-bold transition-colors hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black whitespace-nowrap sm:hidden"
                     >
-                        ANONLOG
+                        RETROLOG
                     </a>
                 </div>
 
                 {/* RIGHT: Auth & Theme */}
                 <div className="flex-1 flex justify-end items-center gap-4 sm:gap-6">
-                    <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                     <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
+                    <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
                 </div>
             </header>
 

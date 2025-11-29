@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Translations, UserProfile } from '../types';
 import { auth, db } from '../firebaseConfig';
 import { 
@@ -29,6 +28,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Close on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const toggleMode = () => {
     setMode(prev => prev === 'login' ? 'register' : 'login');
@@ -149,11 +159,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 dark:bg-black/90 backdrop-blur-md p-4 animate-fade-in font-mono">
-      <div className="relative w-full max-w-[450px] bg-white dark:bg-[#121212] border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] flex flex-col">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#00000080] p-4 animate-fade-in font-mono">
+      {/* Updated: Border color fixed to #1D2025 even in dark mode */}
+      <div className="relative w-full max-w-[450px] bg-white dark:bg-[#121212] border-2 border-[#1D2025] flex flex-col text-black dark:text-white">
         
-        {/* Header Bar */}
-        <div className="flex items-center justify-between border-b-2 border-black dark:border-white p-4 bg-black dark:bg-white text-white dark:text-black">
+        {/* Header Bar - Updated border */}
+        <div className="flex items-center justify-between border-b-2 border-[#1D2025] p-4">
             <span className="text-sm font-bold uppercase tracking-widest">
                 {mode === 'login' ? t.auth_title_login : t.auth_title_register} //
             </span>
@@ -168,19 +179,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
 
         <div className="p-6 md:p-8 flex flex-col gap-6">
             
-            {/* Disclaimer */}
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 leading-relaxed text-justify border-l-2 border-gray-300 dark:border-gray-700 pl-3">
+            {/* Disclaimer - Updated border */}
+            <p className="text-[10px] uppercase tracking-wider text-[#1D2025] dark:text-gray-400 leading-relaxed text-justify border-l-2 border-[#1D2025] pl-3">
                 {t.auth_disclaimer}
             </p>
 
             {/* Primary Actions */}
             <div className="flex flex-col gap-3">
-                {/* Google Button */}
+                {/* Google Button - Updated border */}
                 <button 
                     type="button"
                     onClick={handleGoogleClick}
                     disabled={isLoading}
-                    className="group relative w-full h-14 bg-transparent border border-black dark:border-white flex items-center justify-center gap-4 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:translate-y-[2px] disabled:opacity-50 disabled:cursor-wait"
+                    className="group relative w-full h-14 bg-transparent border border-[#1D2025] flex items-center justify-center gap-4 hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-all active:translate-y-[2px] disabled:opacity-50 disabled:cursor-wait"
                 >
                     <div className="w-5 h-5 bg-white p-0.5 rounded-sm flex items-center justify-center">
                          <svg viewBox="0 0 24 24" className="w-full h-full">
@@ -195,36 +206,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                     </span>
                     {!isLoading && <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-[8px]">→</div>}
                 </button>
-
-                {/* Apple Button (Mock) */}
-                <button 
-                    type="button"
-                    className="w-full h-12 opacity-50 bg-[#f2f2f2] dark:bg-[#1a1a1a] border border-dashed border-black dark:border-white flex items-center justify-center gap-3 cursor-not-allowed" 
-                    disabled
-                >
-                    <svg className="w-4 h-4 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.79C2.79 14.21 3.51 7.6 9.02 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.48-1.23 3.64-1.24.92.02 3.6.26 4.61 2.31-.08.05-2.8 1.66-2.79 4.94.01 3.94 3.48 5.24 3.5 5.27-.03.1-.55 1.94-1.81 3.95zm-4.14-14.24c.66-1.23.31-2.81.31-2.81s-1.39.12-2.85 1.74c-1.09 1.19-1.28 2.92-1.28 2.92s1.53.14 3.82-1.85z"/>
-                    </svg>
-                    <span className="text-xs font-bold uppercase tracking-widest">{t.auth_apple_btn}</span>
-                </button>
             </div>
 
-            {/* Divider */}
+            {/* Divider - Updated lines to bg-[#1D2025] */}
             <div className="flex items-center gap-4">
-                <div className="h-[1px] flex-1 bg-black/20 dark:bg-white/20"></div>
-                <span className="text-[10px] font-bold text-black/40 dark:text-white/40 uppercase tracking-widest">// {t.auth_or_divider} //</span>
-                <div className="h-[1px] flex-1 bg-black/20 dark:bg-white/20"></div>
+                <div className="h-[1px] flex-1 bg-[#1D2025]"></div>
+                <span className="text-[10px] font-bold text-[#1D2025] dark:text-white uppercase tracking-widest">// {t.auth_or_divider} //</span>
+                <div className="h-[1px] flex-1 bg-[#1D2025]"></div>
             </div>
 
             {/* Inputs Form */}
             <form className="flex flex-col gap-4 opacity-100" onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-1">
-                     <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{t.auth_email_label}*</label>
+                     <label className="text-[9px] font-bold uppercase tracking-widest text-[#1D2025] dark:text-gray-400">{t.auth_email_label}*</label>
                      <input 
                         type="email" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-gray-500"
+                        className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-[#1D2025]/10 dark:border-white/10 focus:border-[#1D2025] dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-gray-500"
                         placeholder="USER@NET.LOC"
                         disabled={isLoading}
                      />
@@ -232,12 +231,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 
                 {mode === 'register' && (
                      <div className="flex flex-col gap-1 animate-fade-in">
-                        <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{t.auth_username_label}</label>
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-[#1D2025] dark:text-gray-400">{t.auth_username_label}</label>
                         <input 
                             type="text" 
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-gray-500"
+                            className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-[#1D2025]/10 dark:border-white/10 focus:border-[#1D2025] dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-gray-500"
                             placeholder="NEO_2025"
                             disabled={isLoading}
                         />
@@ -245,12 +244,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 )}
 
                 <div className="flex flex-col gap-1">
-                     <label className="text-[9px] font-bold uppercase tracking-widest text-gray-400">{t.auth_password_label}*</label>
+                     <label className="text-[9px] font-bold uppercase tracking-widest text-[#1D2025] dark:text-gray-400">{t.auth_password_label}*</label>
                      <input 
                         type="password" 
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-black/10 dark:border-white/10 focus:border-black dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-********"
+                        className="w-full bg-[#f2f2f2] dark:bg-[#1f1f1f] border-b-2 border-[#1D2025]/10 dark:border-white/10 focus:border-[#1D2025] dark:focus:border-white px-4 py-3 text-sm font-mono outline-none transition-colors text-black dark:text-white placeholder-********"
                         placeholder="••••••••"
                         disabled={isLoading}
                      />
@@ -273,7 +272,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                         <button 
                             type="button"
                             onClick={handleForgotPassword}
-                            className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black dark:hover:text-white transition-colors hover:underline decoration-dashed"
+                            className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#1D2025] dark:hover:text-white transition-colors hover:underline decoration-dashed"
                         >
                             {t.auth_forgot_pass}
                         </button>
@@ -283,7 +282,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 <button 
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-12 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors mt-2 shadow-lg disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-[#1D2025] dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-[0.2em] hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors mt-2 shadow-lg disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
                 >
                     {isLoading && (
                         <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -303,7 +302,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 <button 
                     type="button"
                     onClick={toggleMode}
-                    className="text-black dark:text-white border-b border-black dark:border-white pb-0.5 hover:opacity-50 transition-opacity"
+                    className="text-black dark:text-white border-b border-[#1D2025] dark:border-white pb-0.5 hover:opacity-50 transition-opacity"
                     disabled={isLoading}
                 >
                     {mode === 'login' ? t.auth_switch_register : t.auth_switch_login}

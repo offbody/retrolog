@@ -60,7 +60,7 @@ export const useMessages = () => {
 
             const fallbackProfile: UserProfile = {
                 uid: uid,
-                displayName: fallbackName || 'ANON_USER',
+                displayName: fallbackName || 'RETRO_USER',
                 photoURL: firebaseUser.photoURL,
                 email: firebaseUser.email,
                 karma: 0,
@@ -138,7 +138,7 @@ export const useMessages = () => {
   // 4. Subscribe to Banned Users
   useEffect(() => {
       const unsubscribeBans = onSnapshot(collection(db, 'banned_users'), (snapshot) => {
-          const bans = new Set(snapshot.docs.map(doc => doc.data().userId));
+          const bans = new Set(snapshot.docs.map(doc => doc.data().userId as string));
           setBannedUserIds(bans);
       }, (error) => {
            console.warn("Banned users sync failed:", error);

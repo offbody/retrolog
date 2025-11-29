@@ -130,7 +130,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
 
   return (
     <div className="w-full">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-black/10 dark:border-white/10 pb-0">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#1D2025]/10 dark:border-white/10 pb-0">
          <div className="flex items-center gap-8">
             <button 
                 onClick={() => handleTabChange('all')}
@@ -142,7 +142,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
             >
             {t.all_messages_tab} ({messages.length})
             {activeTab === 'all' && (
-                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-black dark:bg-white"></div>
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1D2025] dark:bg-white"></div>
             )}
             </button>
 
@@ -159,7 +159,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
                 <div className="w-[6px] h-[6px] rounded-full bg-[#FF4343] animate-pulse shadow-[0_0_8px_rgba(255,67,67,0.6)]"></div>
             )}
             {activeTab === 'mine' && (
-                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-black dark:bg-white"></div>
+                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#1D2025] dark:bg-white"></div>
             )}
             </button>
          </div>
@@ -193,7 +193,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, currentUserI
       
       {filteredMessages.length === 0 ? (
         <div className="w-full flex justify-center py-24 opacity-30">
-            <p className="uppercase tracking-widest text-sm font-bold border-b border-black dark:border-white pb-1 text-black dark:text-white">
+            <p className="uppercase tracking-widest text-sm font-bold border-b border-[#1D2025] dark:border-white pb-1 text-black dark:text-white">
                 {activeTab === 'all' ? t.no_entries : t.no_dialogs}
             </p>
         </div>

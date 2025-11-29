@@ -96,11 +96,11 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   return (
     <div 
-      className="fixed bottom-0 left-0 w-full z-50 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe border-t border-black/10 dark:border-white/10 transition-all"
+      className="fixed bottom-0 left-0 w-full z-50 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe border-t border-[#1D2025]/10 dark:border-white/10 transition-all"
     >
        {/* Replying Banner */}
        {replyingTo && (
-         <div className="bg-black dark:bg-white text-white dark:text-black p-2 flex justify-between items-center border-t border-black/10 dark:border-white/10">
+         <div className="bg-[#1D2025] dark:bg-white text-white dark:text-black p-2 flex justify-between items-center border-t border-[#1D2025]/10 dark:border-white/10">
              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -123,7 +123,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                     value={title}
                     onChange={handleTitleChange}
                     placeholder={t.title_placeholder}
-                    className="w-full bg-transparent border-b border-black/10 dark:border-white/10 py-1 text-sm font-bold text-black dark:text-white placeholder-gray-400 focus:outline-none"
+                    className="w-full bg-transparent border-b border-[#1D2025]/10 dark:border-white/10 py-1 text-sm font-bold text-black dark:text-white placeholder-gray-400 focus:outline-none"
                     disabled={isSending}
                />
            </div>
@@ -131,7 +131,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
        {/* Tag Input Area */}
        {showTagInput && (
-          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-black/10 dark:border-white/10 px-4 py-2 relative mt-1">
+          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-[#1D2025]/10 dark:border-white/10 px-4 py-2 relative mt-1">
                <div className="relative">
                     <input 
                         ref={tagInputRef}
@@ -163,7 +163,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
             <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className={`flex items-center justify-center w-8 h-8 border border-black/10 dark:border-white/10 transition-colors shrink-0 ${expanded ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'}`}
+                className={`flex items-center justify-center w-8 h-8 border border-[#1D2025]/10 dark:border-white/10 transition-colors shrink-0 ${expanded ? 'bg-[#1D2025] text-white dark:bg-white dark:text-black' : 'text-black dark:text-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black'}`}
                 title="Expand Title"
                 disabled={isSending}
             >
@@ -176,7 +176,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
              <button
                 type="button"
                 onClick={() => setShowTagInput(!showTagInput)}
-                className="flex items-center justify-center w-8 h-8 border border-black/10 dark:border-white/10 text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
+                className="flex items-center justify-center w-8 h-8 border border-[#1D2025]/10 dark:border-white/10 text-black dark:text-white hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
                 title={t.add_tag_btn}
                 disabled={isSending}
              >
@@ -200,7 +200,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                   {detectedTags.length > 0 ? (
                      <div className="flex gap-1">
                         {detectedTags.slice(0, 2).map((tag, i) => (
-                            <span key={i} className="text-[8px] bg-black dark:bg-white text-white dark:text-black px-1">{tag}</span>
+                            <span key={i} className="text-[8px] bg-[#1D2025] dark:bg-white text-white dark:text-black px-1">{tag}</span>
                         ))}
                         {detectedTags.length > 2 && <span className="text-[8px] text-gray-400">...</span>}
                      </div>
@@ -216,7 +216,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
           <button
             type="submit"
             disabled={text.trim().length === 0 || cooldownRemaining > 0 || isSending}
-            className="shrink-0 h-10 px-4 sm:px-6 border border-black/10 dark:border-white/10 text-black dark:text-white text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="shrink-0 h-10 px-4 sm:px-6 border border-[#1D2025]/10 dark:border-white/10 text-black dark:text-white text-xs font-bold uppercase tracking-widest hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             {isSending ? (
                 <span className="animate-pulse">...</span>

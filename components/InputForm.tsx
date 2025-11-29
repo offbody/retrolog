@@ -107,7 +107,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-0 relative">
       
       {replyingTo && (
-          <div className="w-full bg-black dark:bg-white text-white dark:text-black p-3 flex justify-between items-center clip-corner-top mb-[-1px] z-10">
+          <div className="w-full bg-[#1D2025] dark:bg-white text-white dark:text-black p-3 flex justify-between items-center clip-corner-top mb-[-1px] z-10">
              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
@@ -143,7 +143,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
                 value={title}
                 onChange={handleTitleChange}
                 placeholder={t.title_placeholder}
-                className="w-full bg-transparent border-b border-black/5 dark:border-white/5 px-8 py-4 text-lg font-bold uppercase tracking-wide text-black dark:text-white placeholder-gray-400/70 dark:placeholder-gray-600/70 focus:outline-none"
+                className="w-full bg-transparent border-b border-[#1D2025]/5 dark:border-white/5 px-8 py-4 text-lg font-bold uppercase tracking-wide text-black dark:text-white placeholder-gray-400/70 dark:placeholder-gray-600/70 focus:outline-none"
                 disabled={isSending}
               />
           )}
@@ -157,7 +157,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
                         value={tagInputText}
                         onChange={handleTagChange}
                         placeholder={t.tags_placeholder}
-                        className="w-full bg-transparent border-b border-black/20 dark:border-white/20 py-2 pr-6 text-sm font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-black dark:focus:border-white"
+                        className="w-full bg-transparent border-b border-[#1D2025]/20 dark:border-white/20 py-2 pr-6 text-sm font-mono text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#1D2025] dark:focus:border-white"
                         disabled={isSending}
                     />
                     <button
@@ -195,8 +195,8 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
                     type="button"
                     onClick={() => setShowTagInput(true)}
                     className={`
-                        flex items-center gap-2 px-3 py-1 border border-black dark:border-white text-black dark:text-white
-                        text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all
+                        flex items-center gap-2 px-3 py-1 border border-[#1D2025] dark:border-white text-black dark:text-white
+                        text-[10px] font-bold uppercase tracking-widest hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-all
                         ${isFocused ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                     `}
                     disabled={isSending}
@@ -209,7 +209,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
              {detectedTags.length > 0 && (
                 <div className="flex items-center gap-2 overflow-x-auto max-w-[120px] sm:max-w-[200px] no-scrollbar">
                     {detectedTags.map((tag, idx) => (
-                        <span key={idx} className="text-[10px] bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 font-mono whitespace-nowrap">
+                        <span key={idx} className="text-[10px] bg-[#1D2025] dark:bg-white text-white dark:text-black px-2 py-0.5 font-mono whitespace-nowrap">
                             {tag}
                         </span>
                     ))}
@@ -219,12 +219,12 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
         </div>
       </div>
 
-      <div className="flex justify-between items-center border-b border-black dark:border-white pb-4 mt-6">
+      <div className="flex justify-between items-center border-b border-[#1D2025] dark:border-white pb-4 mt-6">
         <span className="text-sm font-bold uppercase tracking-widest text-black dark:text-white">{t.new_entry_label}</span>
         <button
           type="submit"
           disabled={text.trim().length === 0 || cooldownRemaining > 0 || isSending}
-          className="px-8 py-3 border border-black dark:border-white text-black dark:text-white text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="px-8 py-3 border border-[#1D2025] dark:border-white text-black dark:text-white text-sm font-bold uppercase tracking-widest hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           {isSending ? 'SENDING...' : (cooldownRemaining > 0 ? `${cooldownRemaining}s` : t.publish_btn)}
         </button>

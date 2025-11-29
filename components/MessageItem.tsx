@@ -166,7 +166,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
       >
         
         {/* 1. META HEADER */}
-        <div className="flex items-center justify-between w-full border-b border-black/5 dark:border-white/5 pb-2 mb-1 gap-2">
+        <div className="flex items-center justify-between w-full border-b border-[#1D2025]/5 dark:border-white/5 pb-2 mb-1 gap-2">
             <div className="flex items-center flex-wrap gap-3 text-xs font-bold text-gray-500 dark:text-gray-500 uppercase tracking-wider">
                 {message.senderName ? (
                     // Registered User
@@ -186,7 +186,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                 {isOwnMessage && (
                     <>
                         <span className="opacity-30">//</span>
-                        <span className="bg-black dark:bg-white text-white dark:text-black px-1.5 py-0.5 text-[10px]">
+                        <span className="bg-[#1D2025] dark:bg-white text-white dark:text-black px-1.5 py-0.5 text-[10px]">
                             {t.you_label}
                         </span>
                     </>
@@ -255,10 +255,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                         </button>
 
                         {isMenuOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-[#1a1a1a] border border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 flex flex-col py-1">
+                            <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-[#1a1a1a] border border-[#1D2025] dark:border-white shadow-[4px_4px_0px_0px_#1D2025] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 flex flex-col py-1">
                                 <button
                                     onClick={handleDeleteAction}
-                                    className="text-left px-4 py-3 text-xs font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-red-500"
+                                    className="text-left px-4 py-3 text-xs font-bold uppercase hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-red-500"
                                 >
                                     УДАЛИТЬ
                                 </button>
@@ -273,7 +273,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         {parentContent && (
             <div 
                 onClick={handleScrollToParent}
-                className="cursor-pointer flex border-l-2 border-black/20 dark:border-white/20 pl-3 py-1 my-1 hover:border-black dark:hover:border-white transition-colors"
+                className="cursor-pointer flex border-l-2 border-[#1D2025]/20 dark:border-white/20 pl-3 py-1 my-1 hover:border-[#1D2025] dark:hover:border-white transition-colors"
             >
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
                     {parentContent}
@@ -288,7 +288,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     <button 
                     key={idx}
                     onClick={(e) => { e.stopPropagation(); onTagClick(tag); }}
-                    className="text-[10px] font-bold uppercase tracking-wider bg-black/5 dark:bg-white/10 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-gray-600 dark:text-gray-400 px-2 py-1 rounded transition-colors font-mono"
+                    className="text-[10px] font-bold uppercase tracking-wider bg-[#1D2025]/5 dark:bg-white/10 hover:bg-[#1D2025] hover:text-white dark:hover:bg-white dark:hover:text-black text-gray-600 dark:text-gray-400 px-2 py-1 rounded transition-colors font-mono"
                     >
                     {tag}
                     </button>
@@ -354,7 +354,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
         {showMobileMenu && (
            <div className="absolute inset-0 z-20 bg-white/95 dark:bg-black/95 backdrop-blur-md flex items-center justify-center gap-8 animate-fade-in clip-corner">
               <button onClick={handleReplyAction} className="flex flex-col items-center gap-2 p-4">
-                 <div className="w-14 h-14 rounded-full border-2 border-black dark:border-white flex items-center justify-center bg-black text-white dark:bg-white dark:text-black shadow-lg">
+                 <div className="w-14 h-14 rounded-full border-2 border-[#1D2025] dark:border-white flex items-center justify-center bg-[#1D2025] text-white dark:bg-white dark:text-black shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                     </svg>
@@ -362,7 +362,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                  <span className="text-xs font-bold uppercase tracking-widest">{t.reply_btn}</span>
               </button>
               <button onClick={handleCopy} className="flex flex-col items-center gap-2 p-4">
-                 <div className="w-14 h-14 rounded-full border-2 border-black dark:border-white flex items-center justify-center shadow-lg bg-white dark:bg-black">
+                 <div className="w-14 h-14 rounded-full border-2 border-[#1D2025] dark:border-white flex items-center justify-center shadow-lg bg-white dark:bg-black">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>

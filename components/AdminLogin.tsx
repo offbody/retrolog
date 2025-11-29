@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Translations } from '../types';
 import { auth } from '../firebaseConfig';
@@ -50,7 +51,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, t }) => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[#f2f2f2] dark:bg-[#252525] border border-transparent focus:border-black dark:focus:border-white p-4 text-sm outline-none transition-colors"
-              placeholder="admin@anonlog.ru"
+              placeholder="admin@retrolog.ru"
               autoFocus
             />
           </div>

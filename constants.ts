@@ -16,7 +16,7 @@ export const PREDEFINED_TAGS = [
 
 export const TRANSLATIONS: Record<Language, Translations> = {
   en: {
-    system_name: 'ANONLOG // Y2K VIBE',
+    system_name: 'RETROLOG // Y2K VIBE',
     footer: 'Decentralized // Persistent // Community',
     search_label: 'SEARCH //',
     search_placeholder: 'FIND TOPICS...',
@@ -53,7 +53,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sort_oldest_short: 'OLD',
     sort_best_short: 'TOP',
     popular_tags_label: 'COMMUNITIES',
-    preloader_title: 'ANONLOG',
+    preloader_title: 'RETROLOG',
     preloader_subtitle: 'ESTABLISHING UPLINK',
     next_msg_label: 'NEXT',
     admin_login_title: 'ROOT ACCESS',
@@ -66,7 +66,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     menu_btn: 'MENU',
     close_btn: 'CLOSE',
     mobile_footer_text_1: 'Next-gen BBS system.',
-    mobile_footer_text_2: '2025. AnonLog Network.',
+    mobile_footer_text_2: '2025. Retrolog Network.',
     login_google: 'LOGIN WITH GOOGLE',
     guest_mode: 'GUEST ACCESS',
     // Auth Modal
@@ -80,7 +80,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     auth_username_label: 'USERNAME',
     auth_forgot_pass: 'FORGOT PASSWORD?',
     auth_has_account: 'ALREADY A USER?',
-    auth_no_account: 'NEW TO ANONLOG?',
+    auth_no_account: 'NEW TO RETROLOG?',
     auth_submit_login: 'AUTHENTICATE',
     auth_submit_register: 'REGISTER IDENTITY',
     auth_disclaimer: 'INITIATING SESSION SEQUENCE. BY PROCEEDING, YOU ACKNOWLEDGE COMPLIANCE WITH PROTOCOL 7 (TERMS) AND DATA RETENTION POLICY.',
@@ -100,7 +100,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     auth_verification_sent: 'VERIFICATION EMAIL SENT',
   },
   ru: {
-    system_name: 'АНОНЛОГ // ВАЙБ НУЛЕВЫХ',
+    system_name: 'РЕТРОЛОГ // ВАЙБ НУЛЕВЫХ',
     footer: 'Децентрализация // Сообщество // Наследие',
     search_label: 'ПОИСК //',
     search_placeholder: 'НАЙТИ ТЕМУ...',
@@ -137,7 +137,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     sort_oldest_short: 'СТАРЫЕ',
     sort_best_short: 'ТОП',
     popular_tags_label: 'СООБЩЕСТВА',
-    preloader_title: 'ANONLOG',
+    preloader_title: 'RETROLOG',
     preloader_subtitle: 'УСТАНОВКА СВЯЗИ',
     next_msg_label: 'СЛЕД.',
     admin_login_title: 'ROOT ДОСТУП',
@@ -150,7 +150,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     menu_btn: 'МЕНЮ',
     close_btn: 'ЗАКРЫТЬ',
     mobile_footer_text_1: 'Next-gen BBS система.',
-    mobile_footer_text_2: '2025. AnonLog Network.',
+    mobile_footer_text_2: '2025. Retrolog Network.',
     login_google: 'ВОЙТИ ЧЕРЕЗ GOOGLE',
     guest_mode: 'ГОСТЕВОЙ РЕЖИМ',
     // Auth Modal
