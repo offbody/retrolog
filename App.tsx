@@ -239,7 +239,6 @@ const App: React.FC = () => {
       
       <StickyHeader 
         isVisible={showStickyHeader} 
-        userId={userId}
         userProfile={userProfile}
         onLogin={() => loginWithGoogle()}
         onToggleMenu={() => setIsDrawerOpen(true)}
