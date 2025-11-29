@@ -24,6 +24,24 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
+  
+  // Dropdown Menu Logic
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            setIsMenuOpen(false);
+        }
+    };
+    if (isMenuOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const handleTouchStart = () => {
     isLongPress.current = false;
@@ -60,7 +78,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
 
   const handleDeleteAction = (e: React.MouseEvent) => {
       e.stopPropagation();
-      onDeleteMessage(message.id);
+      setIsMenuOpen(false);
+      if (window.confirm("УДАЛИТЬ ПОСТ?")) {
+        onDeleteMessage(message.id);
+      }
   };
 
   const handleBlockAction = (e: React.MouseEvent) => {
@@ -208,7 +229,10 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                             BLOCK
                         </button>
                         <button
-                            onClick={handleDeleteAction}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteMessage(message.id);
+                            }}
                             className="w-6 h-6 bg-red-500 text-white flex items-center justify-center rounded-full font-bold shadow-md hover:bg-red-600"
                             title="ADMIN: Delete Message"
                         >
@@ -217,17 +241,31 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, currentUserId
                     </div>
                 )}
 
-                <div className="hidden sm:flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button 
-                        onClick={handleReplyAction}
-                        className="text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        title={t.reply_btn}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                        </svg>
-                    </button>
-                </div>
+                {/* MORE MENU (User Delete) */}
+                {isOwnMessage && !isAdmin && (
+                    <div className="relative" ref={menuRef}>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
+                            className="text-black dark:text-white hover:opacity-50 transition-opacity p-1"
+                            aria-label="Options"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                            </svg>
+                        </button>
+
+                        {isMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-[#1a1a1a] border border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] z-50 flex flex-col py-1">
+                                <button
+                                    onClick={handleDeleteAction}
+                                    className="text-left px-4 py-3 text-xs font-bold uppercase hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-red-500"
+                                >
+                                    УДАЛИТЬ
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
 
