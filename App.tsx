@@ -1,20 +1,32 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MessageList } from './components/MessageList';
 import { SearchBar } from './components/SearchBar';
-import { StickyInput } from './components/StickyInput';
+// StickyInput removed
 import { StickyHeader } from './components/StickyHeader';
-import { ThemeToggle } from './components/ThemeToggle';
 import { Preloader } from './components/Preloader';
 import { AuthWidget } from './components/AuthWidget';
 import { PixelCanvas } from './components/PixelCanvas';
 import { ScrollToTop } from './components/ScrollToTop';
 import { AdminLogin } from './components/AdminLogin';
 import { PopularTags } from './components/PopularTags';
+import { CreatePostModal } from './components/CreatePostModal'; // Import new modal
 import { useMessages } from './hooks/useMessages';
 import { Message, Language } from './types';
 import { TRANSLATIONS, PREDEFINED_TAGS } from './constants';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
+import { IconButton } from './components/IconButton';
+import { PrimaryButton } from './components/PrimaryButton';
+import { StickyInput } from './components/StickyInput'; // Import only for Reply mode, if we keep reply separate, or we can reuse modal later. For now, request said replace StickyInput at bottom. 
+// Actually, StickyInput was used for replies too. If we remove it completely, we lose reply functionality.
+// The user request was "уберем внизу страницы интерфейс ввода сообщения... Вместо него - по нажатию на кнопку создать".
+// This implies the *always visible* bottom bar is gone. 
+// I will keep StickyInput ONLY for replies (if replyingTo is set), but hide it otherwise.
+// Wait, StickyInput component has `isVisible` prop.
+// However, the prompt says "interface input message at bottom is no longer needed". 
+// I will repurpose StickyInput ONLY for replies, or assuming for now we focus on the "Create" button flow.
+// Let's modify StickyInput usage to only show when replying.
 
 const App: React.FC = () => {
   const { messages, addMessage, deleteMessage, blockUser, toggleVote, userId, userProfile, loginWithGoogle, logout } = useMessages();
@@ -24,6 +36,7 @@ const App: React.FC = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false); // Side menu state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // New Modal State
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -38,8 +51,7 @@ const App: React.FC = () => {
   useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
           // SECURITY FIX: Strict check for admin email only.
-          // Removed user.email.includes('admin') vulnerability.
-          if (user && user.email === 'offbody@gmail.com') {
+          if (user && user.email === 'root@retrolog.ru') {
               setIsAdmin(true);
           } else {
               setIsAdmin(false);
@@ -125,7 +137,7 @@ const App: React.FC = () => {
     }
   }, [isDark]);
 
-  // Manual toggle just in case, though system sync is primary
+  // Manual toggle
   const toggleTheme = () => setIsDark(!isDark);
   
   const topSectionRef = useRef<HTMLDivElement>(null);
@@ -229,6 +241,10 @@ const App: React.FC = () => {
       }
   };
 
+  const openCreateModal = () => {
+      setIsCreateModalOpen(true);
+  };
+
   if (showAdminLogin && !isAdmin && isAuthChecked) {
       return <AdminLogin onLogin={handleAdminLogin} t={t} />;
   }
@@ -237,6 +253,14 @@ const App: React.FC = () => {
     <>
       <Preloader isVisible={isLoading} t={t} />
       
+      {isCreateModalOpen && (
+          <CreatePostModal 
+              onClose={() => setIsCreateModalOpen(false)}
+              onSendMessage={handleSendMessage}
+              t={t}
+          />
+      )}
+
       <StickyHeader 
         isVisible={showStickyHeader} 
         userProfile={userProfile}
@@ -245,6 +269,9 @@ const App: React.FC = () => {
         t={t}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
+        isDark={isDark}
+        toggleTheme={toggleTheme}
+        onCreateClick={openCreateModal}
       />
       
       {/* SIDEBAR DRAWER (Mobile & Desktop Triggered by Burger) */}
@@ -254,16 +281,14 @@ const App: React.FC = () => {
                 className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
                 onClick={() => setIsDrawerOpen(false)}
             />
-            <div className="fixed inset-y-0 left-0 z-[70] w-80 bg-white dark:bg-[#121212] border-r border-black dark:border-white p-6 flex flex-col transform transition-transform duration-300 ease-out animate-fade-in font-mono shadow-2xl">
+            <div className="fixed inset-y-0 left-0 z-[70] w-80 bg-r-light dark:bg-r-dark border-r border-black dark:border-white p-6 flex flex-col transform transition-transform duration-300 ease-out animate-fade-in font-mono shadow-2xl text-black dark:text-white">
                 <div className="flex justify-between items-center mb-8 border-b border-black dark:border-white pb-4">
                     <span className="text-sm font-bold uppercase tracking-widest">{t.menu_btn}</span>
                     <button 
                         onClick={() => setIsDrawerOpen(false)}
                         className="p-1 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
                 
@@ -275,7 +300,7 @@ const App: React.FC = () => {
 
                     <button 
                         onClick={() => { setSelectedTag(null); setIsDrawerOpen(false); window.scrollTo({top:0, behavior:'smooth'}); }}
-                        className="text-left py-3 text-lg font-bold uppercase tracking-widest hover:pl-4 transition-all duration-300"
+                        className="text-left py-3 text-lg font-bold uppercase tracking-widest hover:pl-4 transition-all duration-300 text-black dark:text-white"
                     >
                         {t.all_messages_tab}
                     </button>
@@ -294,7 +319,8 @@ const App: React.FC = () => {
                 <div className="mt-auto pt-6 border-t border-black/10 dark:border-white/10">
                      <div className="flex flex-col gap-4">
                         {userProfile && (
-                            <button onClick={logout} className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600 text-left">
+                            <button onClick={logout} className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600 text-left flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[16px]">logout</span>
                                 {t.logout_btn}
                             </button>
                         )}
@@ -307,7 +333,7 @@ const App: React.FC = () => {
           </>
       )}
 
-      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-white dark:bg-[#121212] text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+      <div className="min-h-screen w-full transition-colors duration-300 pb-24 bg-r-light dark:bg-r-dark text-black dark:text-white font-mono selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         <div className="w-full max-w-[1600px] mx-auto px-6 sm:p-12 pt-6">
           
           <div ref={topSectionRef}>
@@ -315,16 +341,12 @@ const App: React.FC = () => {
             <header className="mb-6 md:mb-8 w-full h-16 sm:h-20 flex items-center justify-between border-b border-black dark:border-white pb-4 sm:pb-0 sm:border-none relative gap-4">
                 
                 {/* LEFT: Burger Menu & Search */}
-                <div className="flex-1 flex items-center justify-start gap-6">
-                    <button 
+                <div className="flex-1 flex items-center justify-start gap-4 sm:gap-6">
+                    <IconButton 
                         onClick={() => setIsDrawerOpen(true)}
-                        className="w-[34px] h-[34px] flex items-center justify-center border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors shrink-0"
-                        aria-label="Open Menu"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                        </svg>
-                    </button>
+                        variant="outlined"
+                        icon={<span className="material-symbols-outlined">menu</span>}
+                    />
 
                     {/* Search Bar - Hidden on small mobile, visible on desktop */}
                     <div className="hidden md:block w-80">
@@ -332,7 +354,7 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* CENTER: System Name - Hidden on very small screens if needed, but flex should handle it */}
+                {/* CENTER: System Name */}
                 <div className="flex-none flex justify-center">
                     <a 
                         href="/"
@@ -349,10 +371,54 @@ const App: React.FC = () => {
                     </a>
                 </div>
 
-                {/* RIGHT: Auth & Theme */}
-                <div className="flex-1 flex justify-end items-center gap-4 sm:gap-6">
-                    <ThemeToggle isDark={isDark} toggleTheme={toggleTheme} t={t} />
-                    <AuthWidget user={userProfile} onLogin={loginWithGoogle} onLogout={logout} t={t} />
+                {/* RIGHT: Auth & Tools */}
+                <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
+                    
+                    {/* Tool Bar Group */}
+                    <div className="flex items-center gap-2 mr-2">
+                         
+                         {/* Create Button - Hidden on very small screens to save space, visible on SM+ */}
+                         <div className="hidden sm:block">
+                            <PrimaryButton 
+                                variant="outlined"
+                                onClick={openCreateModal}
+                                icon={<span className="material-symbols-outlined text-[20px]">add</span>}
+                            >
+                                {t.action_create}
+                            </PrimaryButton>
+                         </div>
+
+                         {/* Mobile Create Button (Icon Only) */}
+                         <div className="sm:hidden">
+                            <IconButton 
+                                variant="outlined"
+                                onClick={openCreateModal}
+                                icon={<span className="material-symbols-outlined">add</span>}
+                            />
+                         </div>
+                         
+                         {/* Notifications */}
+                         <IconButton 
+                            variant="standard"
+                            badge={false} 
+                            icon={<span className="material-symbols-outlined">notifications</span>}
+                         />
+
+                         {/* Messages */}
+                         <IconButton 
+                            variant="standard"
+                            icon={<span className="material-symbols-outlined">chat</span>}
+                         />
+                    </div>
+
+                    <AuthWidget 
+                        user={userProfile} 
+                        onLogin={loginWithGoogle} 
+                        onLogout={logout} 
+                        t={t}
+                        isDark={isDark}
+                        toggleTheme={toggleTheme}
+                    />
                 </div>
             </header>
 
@@ -409,8 +475,9 @@ const App: React.FC = () => {
         </div>
 
         <ScrollToTop />
-
-        {userProfile && (
+        
+        {/* Only show StickyInput when replying, acting as a reply modal of sorts */}
+        {userProfile && replyingTo && (
             <StickyInput 
               onSendMessage={handleSendMessage} 
               isVisible={true}

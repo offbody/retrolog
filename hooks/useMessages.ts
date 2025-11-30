@@ -18,6 +18,10 @@ import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/aut
 
 const USER_ID_KEY = 'anon_log_user_id';
 
+// --- DEVELOPMENT CONFIG ---
+// Set this to TRUE to simulate a logged-in user in the Preview window
+const SIMULATE_AUTH_IN_PREVIEW = true; 
+
 // Name Generator for Google Users
 const generateCyberpunkName = (): string => {
     const adj = ['Neon', 'Cyber', 'Night', 'Digital', 'Techno', 'Binary', 'Quantum', 'Glitch', 'Retro', 'Hyper', 'Data', 'Null', 'Void', 'Flux'];
@@ -37,6 +41,24 @@ export const useMessages = () => {
 
   // 1. Authentication & Profile Sync
   useEffect(() => {
+    // --- SIMULATION MODE FOR PREVIEW ---
+    if (SIMULATE_AUTH_IN_PREVIEW) {
+        const mockUid = 'mock-architect-8080';
+        setUserId(mockUid);
+        setUserProfile({
+            uid: mockUid,
+            displayName: 'RETRO_ARCHITECT',
+            photoURL: null, // Will use generated avatar color
+            email: 'architect@retrolog.ru',
+            karma: 1984,
+            createdAt: Date.now(),
+            emailVerified: false // Simulating unverified state for UI testing
+        });
+        setIsAuthLoading(false);
+        return; 
+    }
+    // -----------------------------------
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
         setIsAuthLoading(true);
         
@@ -46,7 +68,6 @@ export const useMessages = () => {
             setUserId(uid);
             
             // Prepare Fallback Profile (Use Auth data immediately)
-            // This ensures UI updates even if Firestore fails
             let fallbackName = firebaseUser.displayName;
             const isGoogle = firebaseUser.providerData.some(p => p.providerId === 'google.com');
 
@@ -64,7 +85,8 @@ export const useMessages = () => {
                 photoURL: firebaseUser.photoURL,
                 email: firebaseUser.email,
                 karma: 0,
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                emailVerified: firebaseUser.emailVerified
             };
 
             try {
@@ -73,8 +95,12 @@ export const useMessages = () => {
                 const userSnap = await getDoc(userRef);
 
                 if (userSnap.exists()) {
-                    // Profile exists in DB -> Use it
-                    setUserProfile(userSnap.data() as UserProfile);
+                    // Profile exists in DB -> Use it, but ensure emailVerified is fresh from Auth
+                    const data = userSnap.data() as UserProfile;
+                    setUserProfile({
+                        ...data,
+                        emailVerified: firebaseUser.emailVerified
+                    });
                 } else {
                     // Profile does NOT exist -> Create it
                     // We try to write to DB, but even if this fails, we set local state below
@@ -84,7 +110,6 @@ export const useMessages = () => {
             } catch (error) {
                 console.warn("Firestore access failed (likely permissions). Using fallback profile.", error);
                 // CRITICAL FALLBACK:
-                // Even if DB fails, log the user in VISUALLY using the data we have.
                 setUserProfile(fallbackProfile);
             }
         } else {
@@ -106,37 +131,52 @@ export const useMessages = () => {
 
   // 2. Listen to real-time profile updates (Karma, Ban status)
   useEffect(() => {
-      if (!userId || !userProfile) return;
+      if (!userId || !userProfile || SIMULATE_AUTH_IN_PREVIEW) return;
       
-      // Wrap in try-catch logic (onSnapshot throws via error callback)
       const unsubscribeProfile = onSnapshot(doc(db, 'users', userId), (doc) => {
           if (doc.exists()) {
-              setUserProfile(doc.data() as UserProfile);
+              // Merge Firestore data with current auth state (to keep emailVerified fresh if it was just updated)
+              const firestoreData = doc.data() as UserProfile;
+              setUserProfile(prev => prev ? { ...firestoreData, emailVerified: prev.emailVerified } : firestoreData);
           }
       }, (error) => {
           console.warn("Realtime profile sync failed:", error);
       });
 
       return () => unsubscribeProfile();
-  }, [userId]); // Only re-run if userId changes
+  }, [userId]); 
 
   // 3. Login/Logout Functions
   const loginWithGoogle = async () => {
       try {
+          if (SIMULATE_AUTH_IN_PREVIEW) {
+              alert("В режиме симуляции вход не требуется.");
+              return;
+          }
           await signInWithPopup(auth, googleProvider);
       } catch (error) {
           console.error("Login failed", error);
-          throw error; // Rethrow to allow UI to handle state
+          throw error;
       }
   };
 
   const logout = async () => {
+      if (SIMULATE_AUTH_IN_PREVIEW) {
+          // Just reload to clear simulation if we were to turn it off dynamically, 
+          // but since it's hardcoded, it will just come back. 
+          // For now, let's just alert.
+          alert("Выход не работает в режиме симуляции Preview.");
+          return;
+      }
       await signOut(auth);
-      window.location.reload(); // Reload to reset anonymous state cleanly
+      window.location.reload(); 
   };
 
   // 4. Subscribe to Banned Users
   useEffect(() => {
+      // In simulation, no bans
+      if (SIMULATE_AUTH_IN_PREVIEW) return;
+
       const unsubscribeBans = onSnapshot(collection(db, 'banned_users'), (snapshot) => {
           const bans = new Set(snapshot.docs.map(doc => doc.data().userId as string));
           setBannedUserIds(bans);
@@ -148,6 +188,27 @@ export const useMessages = () => {
 
   // 5. Subscribe to Messages
   useEffect(() => {
+    // In simulation, we might start with some dummy messages if empty
+    if (SIMULATE_AUTH_IN_PREVIEW) {
+        if (messages.length === 0) {
+             // Optional: Seed with one welcome message
+             const seed: Message = {
+                 id: 'seed-1',
+                 content: 'Добро пожаловать в режим архитектора. Система готова к тестированию.',
+                 timestamp: Date.now(),
+                 sequenceNumber: 1,
+                 senderId: 'system',
+                 senderName: 'SYSTEM',
+                 tags: ['#retrolog'],
+                 votes: {},
+                 commentCount: 0,
+                 media: []
+             };
+             setMessages([seed]);
+        }
+        return;
+    }
+
     const q = query(collection(db, 'messages'), orderBy('timestamp', 'desc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -179,6 +240,39 @@ export const useMessages = () => {
       .filter(tag => tag.length <= 32)
       .map(tag => tag.toLowerCase());
 
+    // --- SIMULATION LOGIC ---
+    if (SIMULATE_AUTH_IN_PREVIEW) {
+        // Simulate network delay
+        await new Promise(r => setTimeout(r, 600));
+
+        let nextSequence = 1;
+        if (messages.length > 0) {
+            const maxSeq = Math.max(...messages.map(m => m.sequenceNumber || 0));
+            nextSequence = maxSeq + 1;
+        }
+
+        const newSimMsg: Message = {
+            id: `sim-${Date.now()}`,
+            content: content.trim(),
+            title: title ? title.trim() : undefined,
+            timestamp: Date.now(),
+            sequenceNumber: nextSequence,
+            senderId: userId,
+            senderName: userProfile?.displayName || 'SIM_USER',
+            senderAvatar: userProfile?.photoURL || undefined,
+            parentId: parentId || null,
+            tags: uniqueTags,
+            isAdmin: false,
+            votes: {},
+            commentCount: 0,
+            media: []
+        };
+
+        setMessages(prev => [newSimMsg, ...prev]);
+        return;
+    }
+    // ------------------------
+
     try {
       let nextSequence = 1;
       if (messages.length > 0) {
@@ -186,24 +280,21 @@ export const useMessages = () => {
           nextSequence = maxSeq + 1;
       }
       
-      // SECURITY FIX: Strict check for admin email only.
-      const isAdmin = userProfile?.email === 'offbody@gmail.com';
+      const isAdmin = userProfile?.email === 'root@retrolog.ru';
 
-      // NOTE: Firestore throws "invalid-argument" if any field is undefined.
-      // We must construct the object carefully, omitting undefined fields or using null.
-      
       const newMessageData: any = {
         content: content.trim(),
         timestamp: Date.now(),
         sequenceNumber: nextSequence,
         senderId: userId,
-        parentId: parentId || null, // null is valid
+        parentId: parentId || null, 
         tags: uniqueTags,
         isAdmin: isAdmin,
-        votes: {} 
+        votes: {},
+        commentCount: 0,
+        media: []
       };
 
-      // Only add optional fields if they have values to avoid "undefined" error
       if (title && title.trim()) {
           newMessageData.title = title.trim();
       }
@@ -220,13 +311,16 @@ export const useMessages = () => {
 
     } catch (e) {
       console.error("Error adding document: ", e);
-      // RETHROW the error so the UI knows it failed!
       throw e;
     }
 
   }, [userId, messages, userProfile]);
 
   const deleteMessage = useCallback(async (id: string) => {
+      if (SIMULATE_AUTH_IN_PREVIEW) {
+          setMessages(prev => prev.filter(m => m.id !== id));
+          return;
+      }
       try {
           await deleteDoc(doc(db, 'messages', id));
       } catch (e) {
@@ -235,6 +329,10 @@ export const useMessages = () => {
   }, []);
 
   const blockUser = useCallback(async (senderId: string) => {
+      if (SIMULATE_AUTH_IN_PREVIEW) {
+          alert(`[SIMULATION] User ${senderId} would be blocked.`);
+          return;
+      }
       try {
           await addDoc(collection(db, 'banned_users'), { userId: senderId, timestamp: Date.now() });
       } catch (e) {
@@ -244,6 +342,27 @@ export const useMessages = () => {
 
   const toggleVote = useCallback(async (messageId: string, voteType: 'up' | 'down') => {
     if (!userId) return;
+    
+    // --- SIMULATION ---
+    if (SIMULATE_AUTH_IN_PREVIEW) {
+        setMessages(prev => prev.map(msg => {
+            if (msg.id !== messageId) return msg;
+            
+            const currentVotes = msg.votes || {};
+            const previousVote = currentVotes[userId] || 0;
+            const newVoteValue = voteType === 'up' ? 1 : -1;
+            
+            const updatedVotes = { ...currentVotes };
+            if (previousVote === newVoteValue) {
+                delete updatedVotes[userId];
+            } else {
+                updatedVotes[userId] = newVoteValue;
+            }
+            return { ...msg, votes: updatedVotes };
+        }));
+        return;
+    }
+    // ----------------
 
     const message = messages.find(m => m.id === messageId);
     if (!message) return;

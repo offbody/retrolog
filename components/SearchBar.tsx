@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SearchBarProps } from '../types';
 
@@ -36,7 +35,7 @@ export const SearchBar: React.FC<CustomSearchBarProps> = ({ value, onChange, t }
           onClick={() => onChange('')}
           className="text-xs font-bold uppercase text-black dark:text-white hover:text-gray-500 dark:hover:text-gray-400"
         >
-          {t.search_clear}
+          <span className="material-symbols-outlined text-[16px]">close</span>
         </button>
       )}
     </div>

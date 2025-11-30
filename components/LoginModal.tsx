@@ -142,7 +142,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                   email: user.email,
                   photoURL: null,
                   karma: 0,
-                  createdAt: Date.now()
+                  createdAt: Date.now(),
+                  emailVerified: user.emailVerified
               };
 
               await setDoc(doc(db, 'users', user.uid), newUserProfile);
@@ -173,7 +174,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onClose, onGoogleLogin, 
                 className="hover:opacity-50 transition-opacity font-bold"
                 disabled={isLoading}
             >
-                [ESC]
+                <span className="material-symbols-outlined">close</span>
             </button>
         </div>
 

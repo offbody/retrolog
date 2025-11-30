@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TAG_LENGTH, MAX_TITLE_LENGTH } from '../constants';
@@ -96,21 +95,17 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
 
   return (
     <div 
-      className="fixed bottom-0 left-0 w-full z-50 bg-white/95 dark:bg-[#252525]/95 backdrop-blur-md pb-safe border-t border-[#1D2025]/10 dark:border-white/10 transition-all"
+      className="fixed bottom-0 left-0 w-full z-50 bg-r-light/95 dark:bg-r-dark/95 backdrop-blur-md pb-safe border-t border-black/10 dark:border-white/10 transition-all"
     >
        {/* Replying Banner */}
        {replyingTo && (
          <div className="bg-[#1D2025] dark:bg-white text-white dark:text-black p-2 flex justify-between items-center border-t border-[#1D2025]/10 dark:border-white/10">
              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3 h-3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                </svg>
+                <span className="material-symbols-outlined text-[14px]">reply</span>
                 {t.replying_to_prefix}{replyingTo.sequenceNumber.toString().padStart(3, '0')}
              </div>
              <button type="button" onClick={onCancelReply} className="hover:opacity-70">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <span className="material-symbols-outlined text-[18px]">close</span>
              </button>
          </div>
        )}
@@ -129,9 +124,9 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
            </div>
        )}
 
-       {/* Tag Input Area */}
+       {/* Tag Input Area - Use card colors for contrast against the sticky bar bg */}
        {showTagInput && (
-          <div className="w-full bg-[#f2f2f2] dark:bg-[#252525] border-t border-[#1D2025]/10 dark:border-white/10 px-4 py-2 relative mt-1">
+          <div className="w-full bg-r-card-light dark:bg-r-card-dark border-t border-[#1D2025]/10 dark:border-white/10 px-4 py-2 relative mt-1">
                <div className="relative">
                     <input 
                         ref={tagInputRef}
@@ -148,9 +143,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                         className="absolute right-0 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
                         disabled={isSending}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <span className="material-symbols-outlined text-[16px]">close</span>
                     </button>
                </div>
           </div>
@@ -196,7 +189,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
                 disabled={isSending}
               />
               
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-white dark:from-[#252525] to-transparent">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none pl-2 bg-gradient-to-l from-r-light dark:from-r-dark to-transparent">
                   {detectedTags.length > 0 ? (
                      <div className="flex gap-1">
                         {detectedTags.slice(0, 2).map((tag, i) => (
@@ -225,9 +218,7 @@ export const StickyInput: React.FC<StickyInputProps> = ({ onSendMessage, isVisib
             ) : (
                 <>
                     <span className="sm:hidden">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                        </svg>
+                        <span className="material-symbols-outlined">send</span>
                     </span>
                     <span className="hidden sm:inline">{t.send_btn}</span>
                 </>

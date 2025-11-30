@@ -1,9 +1,8 @@
-
 import React from 'react';
 
 export const PixelWalkingMen: React.FC = () => {
   return (
-    <div className="w-full h-[100px] bg-[#f2f2f2] dark:bg-[#252525] clip-corner flex items-center justify-center overflow-hidden relative border-b border-black/10 dark:border-white/10">
+    <div className="w-full h-[100px] bg-r-card-light dark:bg-r-card-dark clip-corner flex items-center justify-center overflow-hidden relative border-b border-black/10 dark:border-white/10">
       
       {/* Pixel Grid Pattern for texture (Optional, subtle) */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 

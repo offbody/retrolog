@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Translations } from '../types';
 import { auth } from '../firebaseConfig';
@@ -34,7 +33,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, t }) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-white dark:bg-[#121212] text-black dark:text-white font-mono p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-r-light dark:bg-r-dark text-black dark:text-white font-mono p-4">
       <div className="w-full max-w-md flex flex-col gap-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold uppercase tracking-widest mb-2">
@@ -50,8 +49,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, t }) => {
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#f2f2f2] dark:bg-[#252525] border border-transparent focus:border-black dark:focus:border-white p-4 text-sm outline-none transition-colors"
-              placeholder="admin@retrolog.ru"
+              className="w-full bg-r-card-light dark:bg-r-card-dark border border-transparent focus:border-black dark:focus:border-white p-4 text-sm outline-none transition-colors"
+              placeholder="root@retrolog.ru"
               autoFocus
             />
           </div>
@@ -62,7 +61,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, t }) => {
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#f2f2f2] dark:bg-[#252525] border border-transparent focus:border-black dark:focus:border-white p-4 text-sm outline-none transition-colors"
+              className="w-full bg-r-card-light dark:bg-r-card-dark border border-transparent focus:border-black dark:focus:border-white p-4 text-sm outline-none transition-colors"
             />
           </div>
 

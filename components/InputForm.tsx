@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { MessageInputProps } from '../types';
 import { MAX_MESSAGE_LENGTH, MAX_TITLE_LENGTH, MAX_TAG_LENGTH } from '../constants';
@@ -109,15 +108,11 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
       {replyingTo && (
           <div className="w-full bg-[#1D2025] dark:bg-white text-white dark:text-black p-3 flex justify-between items-center clip-corner-top mb-[-1px] z-10">
              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                </svg>
+                <span className="material-symbols-outlined text-[16px]">reply</span>
                 {t.replying_to_prefix}{replyingTo.sequenceNumber.toString().padStart(3, '0')}
              </div>
              <button type="button" onClick={onCancelReply} className="hover:opacity-70">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <span className="material-symbols-outlined text-[18px]">close</span>
              </button>
           </div>
       )}
@@ -133,7 +128,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
       >
         <label htmlFor="message-input" className="sr-only">Message</label>
         
-        <div className={`relative w-full bg-[#f2f2f2] dark:bg-[#252525] clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''}`}>
+        <div className={`relative w-full bg-r-card-light dark:bg-r-card-dark clip-corner transition-transform duration-300 group-hover:translate-y-[-4px] flex flex-col ${replyingTo ? 'rounded-t-none' : ''}`}>
           
           {/* Title Input - Only show if NOT replying (new post) or if configured to allow titles in replies */}
           {!replyingTo && (
@@ -166,9 +161,7 @@ export const InputForm: React.FC<MessageInputProps> = ({ onSendMessage, replying
                         className="absolute right-0 top-1/2 -translate-y-1/2 text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white transition-colors"
                         disabled={isSending}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <span className="material-symbols-outlined text-[16px]">close</span>
                     </button>
                   </div>
               </div>

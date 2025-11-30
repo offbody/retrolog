@@ -27,6 +27,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+    <!-- Updated Material Symbols link with FILL axis range 0..1 -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0..1,0" />
     
     <!-- Tailwind CDN for instant styling without build steps -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,15 +37,21 @@
         darkMode: 'class',
         theme: {
           extend: {
+            colors: {
+              'r-light': '#F2F0E9', // Soft Bone
+              'r-dark': '#0E1015',  // Deep Void
+              'r-card-light': '#FFFFFF', // Pure White
+              'r-card-dark': '#1D2025', // Gunmetal
+            },
             fontFamily: {
               mono: ['"JetBrains Mono"', 'monospace'],
             },
             animation: {
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'fade-in': 'fadeIn 0.2s ease-out forwards',
             },
             keyframes: {
               fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               }
             }
@@ -106,18 +114,18 @@
         width: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #ffffff;
+        background: #F2F0E9;
       }
       ::-webkit-scrollbar-thumb {
-        background: #000000;
+        background: #1D2025;
       }
 
       /* Custom Scrollbar - Dark Mode */
       .dark ::-webkit-scrollbar-track {
-        background: #121212;
+        background: #0E1015;
       }
       .dark ::-webkit-scrollbar-thumb {
-        background: #ffffff;
+        background: #FFFFFF;
       }
 
       /* MATRIX ANIMATIONS (Global Keyframes for Cross-browser support) */
@@ -139,6 +147,36 @@
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
       }
+
+      /* Google Material Symbols */
+      .material-symbols-outlined {
+        font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 48;
+        font-family: 'Material Symbols Outlined';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 20px; /* Default size match 20px request */
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+        user-select: none;
+        transition: font-variation-settings 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+
+      .icon-filled {
+        font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 48;
+      }
     </style>
   <script type="importmap">
 {
@@ -154,7 +192,7 @@
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-white text-black dark:bg-[#121212] dark:text-white antialiased">
+  <body class="bg-r-light text-black dark:bg-r-dark dark:text-gray-200 antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 export const ScrollToTop: React.FC = () => {
@@ -55,9 +54,7 @@ export const ScrollToTop: React.FC = () => {
         }`}
         aria-label="Scroll to top"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
-        </svg>
+        <span className="material-symbols-outlined">arrow_upward</span>
       </button>
 
       {/* Scroll To Bottom */}
@@ -68,9 +65,7 @@ export const ScrollToTop: React.FC = () => {
         }`}
         aria-label="Scroll to bottom"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        <span className="material-symbols-outlined">arrow_downward</span>
       </button>
     </div>
   );

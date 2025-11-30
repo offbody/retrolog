@@ -1,12 +1,11 @@
 
 
-
 import { Translations, Language } from './types';
 
 export const STORAGE_KEY = 'anon_log_messages';
 export const LAST_READ_KEY = 'anon_log_last_read_mine';
-export const MAX_MESSAGE_LENGTH = 2000; // Increased for "Posts"
-export const MAX_TITLE_LENGTH = 300; // New constant
+export const MAX_MESSAGE_LENGTH = 2000;
+export const MAX_TITLE_LENGTH = 300;
 export const MAX_TAG_LENGTH = 32;
 
 export const PREDEFINED_TAGS = [
@@ -100,6 +99,45 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     // Auth Success
     auth_reset_sent: 'RESET LINK SENT TO EMAIL',
     auth_verification_sent: 'VERIFICATION EMAIL SENT',
+    // Post Menu
+    post_menu_hide: 'HIDE',
+    post_menu_save: 'SAVE',
+    post_menu_subscribe: 'SUBSCRIBE',
+    post_menu_report: 'REPORT',
+    // Post Time
+    time_sec_ago: 's ago',
+    time_min_ago: 'm ago',
+    time_hour_ago: 'h ago',
+    time_day_ago: 'd ago',
+    time_days_ago: 'd ago',
+    time_month_ago: 'mo ago',
+    time_year_ago: 'y ago',
+    time_years_ago: 'y ago',
+    // User Menu
+    menu_profile: 'PROFILE',
+    menu_settings: 'SETTINGS',
+    menu_theme_day: 'THEME: LIGHT',
+    menu_theme_night: 'THEME: DARK',
+    email_verification_alert: 'EMAIL NOT VERIFIED',
+    email_verification_action: 'Verify your email to create posts and comments.',
+    // Actions
+    action_create: 'CREATE',
+    // Create Post Modal
+    create_post_title: 'Create Post',
+    drafts_btn: 'Drafts',
+    choose_community: 'Choose community',
+    tab_text: 'Text',
+    tab_media: 'Image & Video',
+    tab_link: 'Link',
+    tab_poll: 'Poll',
+    title_required_placeholder: 'Title*',
+    text_area_optional: 'Text*',
+    save_draft_btn: 'Save Draft',
+    publish_post_btn: 'Publish',
+    media_drag_drop: 'Drag or upload media files',
+    link_url_placeholder: 'URL',
+    editor_write: 'WRITE',
+    editor_preview: 'PREVIEW',
   },
   ru: {
     system_name: 'РЕТРОЛОГ // ВАЙБ 8-БИТНОЙ ЭПОХИ',
@@ -184,5 +222,44 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     // Auth Success
     auth_reset_sent: 'ССЫЛКА СБРОСА ОТПРАВЛЕНА',
     auth_verification_sent: 'ПИСЬМО ПОДТВЕРЖДЕНИЯ ОТПРАВЛЕНО',
+    // Post Menu
+    post_menu_hide: 'СКРЫТЬ',
+    post_menu_save: 'СОХРАНИТЬ',
+    post_menu_subscribe: 'ПОДПИСАТЬСЯ',
+    post_menu_report: 'ПОЖАЛОВАТЬСЯ',
+    // Post Time
+    time_sec_ago: 'сек. назад',
+    time_min_ago: 'мин. назад',
+    time_hour_ago: 'ч. назад',
+    time_day_ago: 'д. назад',
+    time_days_ago: 'дн. назад',
+    time_month_ago: 'мес. назад',
+    time_year_ago: 'г. назад',
+    time_years_ago: 'л. назад',
+    // User Menu
+    menu_profile: 'ПРОФИЛЬ',
+    menu_settings: 'НАСТРОЙКИ',
+    menu_theme_day: 'ТЕМА: ДЕНЬ',
+    menu_theme_night: 'ТЕМА: НОЧЬ',
+    email_verification_alert: 'EMAIL НЕ ПОДТВЕРЖДЕН',
+    email_verification_action: 'Подтвердите email, чтобы создавать посты и комментарии.',
+    // Actions
+    action_create: 'СОЗДАТЬ',
+    // Create Post Modal
+    create_post_title: 'Создать пост',
+    drafts_btn: 'Черновики',
+    choose_community: 'Выберите сообщество',
+    tab_text: 'Текст',
+    tab_media: 'Изображения и видео',
+    tab_link: 'Ссылка',
+    tab_poll: 'Опрос',
+    title_required_placeholder: 'Заголовок*',
+    text_area_optional: 'Текст*',
+    save_draft_btn: 'Сохранить черновик',
+    publish_post_btn: 'Опубликовать',
+    media_drag_drop: 'Перетащить или загрузить медиафайлы',
+    link_url_placeholder: 'URL-адрес ссылки',
+    editor_write: 'РЕДАКТОР',
+    editor_preview: 'ПРОСМОТР',
   }
 };

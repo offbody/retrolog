@@ -1,4 +1,5 @@
 
+
 export interface UserProfile {
   uid: string;
   displayName: string | null;
@@ -7,22 +8,26 @@ export interface UserProfile {
   karma: number;
   createdAt: number;
   isBanned?: boolean;
+  emailVerified: boolean; // New field
 }
 
 export interface Message {
   id: string;
-  title?: string; // Added for Reddit-style posts
+  title?: string;
   content: string;
+  media?: string[]; // Array of URLs for images/video
   timestamp: number;
   sequenceNumber: number;
   senderId: string;
-  senderName?: string; // Snapshot of name
-  senderAvatar?: string; // Snapshot of avatar
+  senderName?: string;
+  senderAvatar?: string;
   parentId?: string | null; 
   tags: string[];
   isAdmin?: boolean;
   votes?: Record<string, number>; 
-  community?: string; // Future proofing for subreddits
+  commentCount?: number; // Counter for comments
+  shareCount?: number; // Counter for shares
+  community?: string; 
 }
 
 export type Language = 'ru' | 'en';
@@ -35,7 +40,7 @@ export interface Translations {
   search_placeholder_short: string;
   search_clear: string;
   input_placeholder: string;
-  title_placeholder: string; // NEW
+  title_placeholder: string;
   chars_label: string;
   new_entry_label: string;
   publish_btn: string;
@@ -68,7 +73,6 @@ export interface Translations {
   preloader_title: string;
   preloader_subtitle: string;
   next_msg_label: string;
-  // Admin
   admin_login_title: string;
   login_btn: string;
   logout_btn: string;
@@ -114,10 +118,49 @@ export interface Translations {
   // Auth Success
   auth_reset_sent: string;
   auth_verification_sent: string;
+  // Post Menu
+  post_menu_hide: string;
+  post_menu_save: string;
+  post_menu_subscribe: string;
+  post_menu_report: string;
+  // Post Time
+  time_sec_ago: string;
+  time_min_ago: string;
+  time_hour_ago: string;
+  time_day_ago: string;
+  time_days_ago: string;
+  time_month_ago: string;
+  time_year_ago: string;
+  time_years_ago: string;
+  // User Menu
+  menu_profile: string;
+  menu_settings: string;
+  menu_theme_day: string;
+  menu_theme_night: string;
+  email_verification_alert: string;
+  email_verification_action: string;
+  // Actions
+  action_create: string;
+  // Create Post Modal
+  create_post_title: string;
+  drafts_btn: string;
+  choose_community: string;
+  tab_text: string;
+  tab_media: string;
+  tab_link: string;
+  tab_poll: string;
+  title_required_placeholder: string;
+  text_area_optional: string;
+  save_draft_btn: string;
+  publish_post_btn: string;
+  media_drag_drop: string;
+  link_url_placeholder: string;
+  // Editor
+  editor_write: string;
+  editor_preview: string;
 }
 
 export interface MessageInputProps {
-  // CHANGED: Return Promise<void> to allow waiting for completion/error
   onSendMessage: (content: string, title: string, manualTags?: string[]) => Promise<void>;
   replyingTo: Message | null;
   onCancelReply: () => void;
