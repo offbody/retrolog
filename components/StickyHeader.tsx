@@ -76,35 +76,38 @@ export const StickyHeader: React.FC<StickyHeaderProps> = ({
                  
                  {/* Tool Bar Group */}
                  <div className="flex items-center gap-2 mr-2">
-                     
-                     <div className="hidden sm:block">
-                        <PrimaryButton 
-                            variant="outlined"
-                            onClick={onCreateClick}
-                            icon={<span className="material-symbols-outlined text-[20px]">add</span>}
-                        >
-                            {t.action_create}
-                        </PrimaryButton>
-                     </div>
+                     {userProfile && (
+                         <>
+                             <div className="hidden sm:block">
+                                <PrimaryButton 
+                                    variant="outlined"
+                                    onClick={onCreateClick}
+                                    icon={<span className="material-symbols-outlined text-[20px]">add</span>}
+                                >
+                                    {t.action_create}
+                                </PrimaryButton>
+                             </div>
 
-                     <div className="sm:hidden">
-                        <IconButton 
-                            variant="outlined"
-                            onClick={onCreateClick}
-                            icon={<span className="material-symbols-outlined">add</span>}
-                        />
-                     </div>
-                     
-                     <IconButton 
-                        variant="standard"
-                        badge={false} 
-                        icon={<span className="material-symbols-outlined">notifications</span>}
-                     />
+                             <div className="sm:hidden">
+                                <IconButton 
+                                    variant="outlined"
+                                    onClick={onCreateClick}
+                                    icon={<span className="material-symbols-outlined">add</span>}
+                                />
+                             </div>
+                             
+                             <IconButton 
+                                variant="standard"
+                                badge={false} 
+                                icon={<span className="material-symbols-outlined">notifications</span>}
+                             />
 
-                     <IconButton 
-                        variant="standard"
-                        icon={<span className="material-symbols-outlined">chat</span>}
-                     />
+                             <IconButton 
+                                variant="standard"
+                                icon={<span className="material-symbols-outlined">chat</span>}
+                             />
+                         </>
+                     )}
                  </div>
 
                 <AuthWidget 

@@ -376,39 +376,42 @@ const App: React.FC = () => {
                     
                     {/* Tool Bar Group */}
                     <div className="flex items-center gap-2 mr-2">
-                         
-                         {/* Create Button - Hidden on very small screens to save space, visible on SM+ */}
-                         <div className="hidden sm:block">
-                            <PrimaryButton 
-                                variant="outlined"
-                                onClick={openCreateModal}
-                                icon={<span className="material-symbols-outlined text-[20px]">add</span>}
-                            >
-                                {t.action_create}
-                            </PrimaryButton>
-                         </div>
+                         {userProfile && (
+                             <>
+                                {/* Create Button - Hidden on very small screens to save space, visible on SM+ */}
+                                <div className="hidden sm:block">
+                                    <PrimaryButton 
+                                        variant="outlined"
+                                        onClick={openCreateModal}
+                                        icon={<span className="material-symbols-outlined text-[20px]">add</span>}
+                                    >
+                                        {t.action_create}
+                                    </PrimaryButton>
+                                </div>
 
-                         {/* Mobile Create Button (Icon Only) */}
-                         <div className="sm:hidden">
-                            <IconButton 
-                                variant="outlined"
-                                onClick={openCreateModal}
-                                icon={<span className="material-symbols-outlined">add</span>}
-                            />
-                         </div>
-                         
-                         {/* Notifications */}
-                         <IconButton 
-                            variant="standard"
-                            badge={false} 
-                            icon={<span className="material-symbols-outlined">notifications</span>}
-                         />
+                                {/* Mobile Create Button (Icon Only) */}
+                                <div className="sm:hidden">
+                                    <IconButton 
+                                        variant="outlined"
+                                        onClick={openCreateModal}
+                                        icon={<span className="material-symbols-outlined">add</span>}
+                                    />
+                                </div>
+                                
+                                {/* Notifications */}
+                                <IconButton 
+                                    variant="standard"
+                                    badge={false} 
+                                    icon={<span className="material-symbols-outlined">notifications</span>}
+                                />
 
-                         {/* Messages */}
-                         <IconButton 
-                            variant="standard"
-                            icon={<span className="material-symbols-outlined">chat</span>}
-                         />
+                                {/* Messages */}
+                                <IconButton 
+                                    variant="standard"
+                                    icon={<span className="material-symbols-outlined">chat</span>}
+                                />
+                             </>
+                         )}
                     </div>
 
                     <AuthWidget 
