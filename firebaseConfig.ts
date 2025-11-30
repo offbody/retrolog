@@ -4,14 +4,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// TODO: Вставь сюда данные из консоли Firebase (Project Settings -> Your apps -> SDK setup and configuration)
 const firebaseConfig = {
-  apiKey: "AIzaSyDz5oNkecJNWdH8rIIofFS90GatsGFd26A",
-  authDomain: "anonlog-debbf.firebaseapp.com",
-  projectId: "anonlog-debbf",
-  storageBucket: "anonlog-debbf.firebasestorage.app",
-  messagingSenderId: "44717397932",
-  appId: "1:44717397932:web:7af73338290c3dd87ccc09"
+  apiKey: "AIzaSyC_8-MU-LcmQpMzaKQ-1MXOKxFX719dlJw",
+  authDomain: "retrolog-app.firebaseapp.com",
+  projectId: "retrolog-app",
+  storageBucket: "retrolog-app.firebasestorage.app",
+  messagingSenderId: "378561938716",
+  appId: "1:378561938716:web:34c0fd593b535b59a166d9"
 };
 
 // Initialize Firebase
