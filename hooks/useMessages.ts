@@ -21,7 +21,7 @@ const USER_ID_KEY = 'anon_log_user_id';
 
 // --- DEVELOPMENT CONFIG ---
 // Set this to TRUE to simulate a logged-in user in the Preview window
-const SIMULATE_AUTH_IN_PREVIEW = true; 
+const SIMULATE_AUTH_IN_PREVIEW = false; 
 
 // Name Generator for Google Users
 const generateCyberpunkName = (): string => {

@@ -17,7 +17,7 @@ export const PixelCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scale factor: Reverted to 4.0 for proper pixel art proportions
+  // Scale factor: 4.0 for proper pixel art proportions
   const PIXEL_SCALE = 4.0;
 
   useEffect(() => {
@@ -67,59 +67,35 @@ export const PixelCanvas: React.FC = () => {
         }
     };
 
-    // Generate Random City Skyline (Static Background) - CENTERED
+    // Generate Random City Skyline (Static Background) - Simple Fill
     const initSkyline = (w: number, h: number) => {
         skyline = [];
         
         // Margins in logical pixels
         const margin = 2; 
         
-        // Vertical constraints - Full height allowed again
+        // Vertical constraints - Full height allowed
         const maxBuildingHeight = h - margin;
-        
-        // Horizontal constraints
-        const usableWidth = w - (margin * 2);
 
-        // Temporary array to store buildings relative to group start
-        const buildings: { w: number, h: number }[] = [];
-        let currentWidth = 0;
+        let xPointer = 0; // Start from left
 
-        // Generate buildings
-        while(currentWidth < usableWidth) {
+        // Generate buildings until we fill the width
+        while(xPointer < w) {
             const buildingW = 4 + Math.floor(Math.random() * 12);
             
-            // If adding this building exceeds usable width, stop loop
-            if (currentWidth + buildingW > usableWidth) {
-                break;
-            }
-
             // Height logic: tall buildings to fill the space
             // Min height is 40% of max
             const minH = maxBuildingHeight * 0.4;
             const buildingH = minH + Math.random() * (maxBuildingHeight - minH);
 
-            buildings.push({ w: buildingW, h: buildingH });
-            currentWidth += buildingW + 1; // +1 for 1px gap
-        }
-
-        // Remove the trailing gap from the width calculation for centering
-        if (buildings.length > 0) {
-            currentWidth -= 1;
-        }
-
-        // Calculate Start X to perfectly Center the Skyline
-        // Math.floor ensures we snap to pixel grid to avoid sub-pixel blurring
-        const startX = Math.floor((w - currentWidth) / 2);
-
-        let xPointer = startX;
-        buildings.forEach(b => {
             skyline.push({ 
                 x: xPointer, 
-                w: b.w, 
-                h: b.h 
+                w: buildingW, 
+                h: buildingH 
             });
-            xPointer += b.w + 1;
-        });
+            
+            xPointer += buildingW + 1; // +1 for 1px gap
+        }
     };
 
     const resize = () => {
@@ -200,8 +176,8 @@ export const PixelCanvas: React.FC = () => {
         let px = Math.round(f.x);
         let py = Math.round(f.y);
 
-        // Height variation (Increased base height 5 -> 6 for ~10% taller look)
-        const h = 6 + f.variant; 
+        // Height variation (Reduced by ~15% - from 5 to 4)
+        const h = 4 + f.variant; 
 
         // HEAD
         const headY = py - h - 3;
@@ -243,14 +219,14 @@ export const PixelCanvas: React.FC = () => {
                 // Ensure bubble uses same color as figure
                 ctx.fillStyle = f.color;
                 
-                // Reduced Bubble Size (was 9x5, now 9x7 for better oval shape)
+                // Reduced Bubble Size (REVERTED to 9x5)
                 const bw = 9; 
-                const bh = 7;
+                const bh = 5;
                 
                 // Position bubble slightly to the right and above head
-                // Adjusted offset for smaller head size and increased bubble height
+                // Adjusted offset (REVERTED to -6)
                 const bx = px + 3; 
-                const by = headY - 8;
+                const by = headY - 6;
                 
                 // Outline
                 // Top
@@ -270,7 +246,7 @@ export const PixelCanvas: React.FC = () => {
                 
                 // Typing Dots Animation inside bubble (Reduced count to fit)
                 const dots = Math.floor(time / 400) % 3;
-                const dotY = by + 3; // Vertically centered in new height (7/2 ~= 3.5)
+                const dotY = by + 2; // Vertically centered
                 
                 // Dots at +2, +4, +6
                 if (dots >= 0) ctx.fillRect(bx + 2, dotY, 1, 1);
